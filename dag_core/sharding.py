@@ -57,6 +57,19 @@ class ShardManager:
         else:
             return False
 
+    def process_transaction(self, transaction):
+        """
+        Processes a transaction within the appropriate shard.
+        """
+        shard_id = self.assign_shard(transaction)
+        shard_ledger = self.shard_ledgers[shard_id]
+        # Add validation logic here
+        # For example, check if the transaction is valid:
+        # if not shard_ledger.is_valid_transaction(transaction):
+        #     return False
+        shard_ledger.add_transaction(transaction)
+        return True
+
     def add_node_to_shard(self, node_id, shard_id):
         """
         Adds a node to a shard.
