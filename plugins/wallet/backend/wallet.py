@@ -15,7 +15,8 @@ from .wallet_interface import WalletInterface
 class WalletPlugin(WalletInterface):
     def __init__(self):
         pulse_consensus_mechanism_params = {}  # Replace with actual parameters if needed
-        self.ledger = Ledger(pulse_consensus_mechanism_params)
+        fernet_key = 'your_fernet_key_here'  # Replace with the actual key retrieval logic
+        self.ledger = Ledger(pulse_consensus_mechanism_params, fernet_key)
         self.peer_network = PeerNetwork()  # Assuming PeerNetwork is implemented in the network module
         # Ensures that the logger is configured for the class
         logging.basicConfig(level=logging.INFO)

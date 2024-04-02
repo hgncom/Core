@@ -14,7 +14,7 @@ main_logger.addHandler(file_handler)
 
 
 class Ledger:
-    def __init__(self, pulse_consensus_mechanism_params):
+    def __init__(self, pulse_consensus_mechanism_params, fernet_key):
         self.logger = main_logger
         self.transactions = {}
         self.confirmed_transactions = set()
@@ -22,7 +22,6 @@ class Ledger:
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
         self.confirmation_threshold = 5
-        fernet_key = current_app.config['FERNET_KEY']
         self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=None, encryption_key=fernet_key)
         # self.shard_manager initialization will be handled elsewhere to avoid circular import
                 # self.shard_manager initialization will be handled elsewhere to avoid circular import
