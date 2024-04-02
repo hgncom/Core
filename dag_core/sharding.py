@@ -1,10 +1,12 @@
 import hashlib
+from .ledger import Ledger
 
 class ShardManager:
     def __init__(self, num_shards):
         self.num_shards = num_shards
         self.shard_queues = {i: [] for i in range(num_shards)}  # Message queues for each shard
         self.shards = {i: set() for i in range(num_shards)}  # Keep track of nodes in each shard
+        self.shard_ledgers = {i: Ledger() for i in range(num_shards)}  # Ledger instances for each shard
 
     def send_message_to_shard(self, shard_id, message):
         """
@@ -40,6 +42,20 @@ class ShardManager:
         sender_hash = hashlib.sha256(transaction.sender.encode()).hexdigest()
         shard_id = int(sender_hash, 16) % self.num_shards
         return shard_id
+
+    def process_transaction_in_shard(self, transaction, shard_id):
+        """
+        Processes a transaction within the specified shard.
+        """
+        shard_ledger = self.shard_ledgers[shard_id]
+        if shard_ledger.validate_transaction(transaction):
+            shard_ledger.add_transaction(transaction)
+            return True
+        else:
+            return False
+
+    # Additional methods such as add_node_to_shard, remove_node_from_shard, etc., remain unchanged.
+
 
     def process_transaction_in_shard(self, transaction, shard_id):
         """
