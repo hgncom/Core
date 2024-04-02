@@ -32,6 +32,16 @@ class Ledger:
         # self.shard_manager initialization will be handled elsewhere to avoid circular import
                 # self.shard_manager initialization will be handled elsewhere to avoid circular import
 
+    def get_transactions_for_gossip(self):
+        """
+        Placeholder method to retrieve transactions that need to be gossiped to peers.
+        This method should return a list of transactions.
+        """
+        # Placeholder implementation, adjust with your actual logic
+        return [transaction for transaction_id, transaction in self.transactions.items() if transaction_id not in self.confirmed_transactions]
+
+    # Rest of the Ledger class remains unchanged...
+
     def attach_transaction_to_dag(self, transaction):
         tips = self.select_tips()
         self.approve_transaction(transaction.transaction_id, tips)
