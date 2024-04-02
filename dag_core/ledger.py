@@ -10,6 +10,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 main_logger.addHandler(file_handler)
 
+from .sharding import ShardManager
+
 class Ledger:
     def __init__(self):
         self.logger = main_logger
@@ -88,6 +90,8 @@ class Ledger:
         for tip in tips:
             self.approval_graph[tip].add(approving_transaction_id)
 
+        self.shard_manager = ShardManager(num_shards=10)  # Initialize ShardManager with 10 shards
+
     def add_transaction(self, transaction):
         """
         Adds a transaction to the ledger after validation and verification.
@@ -104,6 +108,13 @@ class Ledger:
 
         if not self.verify_transaction(transaction):
             raise ValueError("Invalid transaction.")
+
+        # Assign the transaction to a shard
+        shard_id = self.shard_manager.assign_shard(transaction)
+        self.logger.info(f"Transaction {transaction.transaction_id} assigned to shard {shard_id}")
+
+        # Process the transaction in the assigned shard
+        self.shard_manager.process_transaction_in_shard(transaction, shard_id)
 
         # Attach the transaction to the DAG
         self.attach_transaction_to_dag(transaction)
