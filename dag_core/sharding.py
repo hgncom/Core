@@ -1,6 +1,7 @@
 import hashlib
 import threading
 from .ledger import Ledger
+from network.pulse.mechanism import PulseConsensusMechanism
 
 class ShardManager:
     def __init__(self, num_shards):
@@ -9,6 +10,11 @@ class ShardManager:
         self.shards = {i: set() for i in range(num_shards)}  # Keep track of nodes in each shard
         self.shard_ledgers = {i: Ledger() for i in range(num_shards)}  # Ledger instances for each shard
         self.lock = threading.Lock()  # Lock for synchronizing access to shard data
+
+    def process_transaction_in_shard(self, transaction, shard_id):
+        if PulseConsensusMechanism.validate_and_reach_consensus(transaction):
+            # Shard-specific processing
+            pass
 
     def send_message_to_shard(self, shard_id, message):
         """

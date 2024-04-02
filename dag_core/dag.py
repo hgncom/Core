@@ -1,10 +1,18 @@
+from network.pulse.mechanism import PulseConsensusMechanism
+
 class DAG:
-    def __init__(self):
+    def __init__(self, pulse_consensus_mechanism_params):
         self.nodes = {}
+        self.pulse_consensus = PulseConsensusMechanism(**pulse_consensus_mechanism_params)
 
     def add_node(self, node):
         if node.transaction_id in self.nodes:
-            raise ValueError(f"Transaction {node.transaction_id} already exists in DAG")
+            raise ValueError(f"Transaction {node.transaction_id} already exists in the DAG")
+
+        # Here, before adding the node, we ensure it has been validated and reached consensus.
+        if not self.pulse_consensus.validate_and_reach_consensus(node):
+            raise Exception("Failed to reach consensus for transaction. Node not added to DAG.")
+
         self.nodes[node.transaction_id] = node
 
     def add_dependency(self, from_transaction_id, to_transaction_id):
@@ -12,6 +20,15 @@ class DAG:
             raise ValueError("One or both of the specified transactions do not exist in the DAG.")
         self.nodes[from_transaction_id].successors.append(to_transaction_id)
         self.nodes[to_transaction_id].dependencies.append(from_transaction_id)
+
+    def is_cyclic(self):
+        visited = {node: False for node in self.nodes}
+        rec_stack = {node: False for node in self.nodes}
+        for node in self.nodes:
+            if not visited[node]:
+                if self.is_cyclic_util(node, visited, rec_stack):
+                    return True
+        return False
 
     def is_cyclic_util(self, node, visited, rec_stack):
         visited[node] = True
@@ -23,15 +40,6 @@ class DAG:
             elif rec_stack[successor]:
                 return True
         rec_stack[node] = False
-        return False
-
-    def is_cyclic(self):
-        visited = {node: False for node in self.nodes}
-        rec_stack = {node: False for node in self.nodes}
-        for node in self.nodes:
-            if not visited[node]:
-                if self.is_cyclic_util(node, visited, rec_stack):
-                    return True
         return False
 
     def execute(self):

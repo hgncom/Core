@@ -1,6 +1,8 @@
+from network.pulse.mechanism import PulseConsensusMechanism
 from collections import defaultdict
 import random
 import logging
+from .sharding import ShardManager
 
 # Configure logging
 main_logger = logging.getLogger('Ledger')
@@ -10,52 +12,38 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 main_logger.addHandler(file_handler)
 
-from .sharding import ShardManager
 
 class Ledger:
-    def __init__(self):
+    def __init__(self, pulse_consensus_mechanism_params):
         self.logger = main_logger
         self.transactions = {}
         self.confirmed_transactions = set()
         self.pending_transactions = set()
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
-        self.confirmation_threshold = 5  # The required number of confirmations can be adjusted as needed
+        self.confirmation_threshold = 5
+        self.pulse_consensus = PulseConsensusMechanism(**pulse_consensus_mechanism_params)
+        self.shard_manager = ShardManager(num_shards=10)
 
     def attach_transaction_to_dag(self, transaction):
-        """
-        Attaches the transaction to the DAG by selecting tips and updating the approval graph.
-        """
-        # Select tips to approve and record the approval
         tips = self.select_tips()
         self.approve_transaction(transaction.transaction_id, tips)
-
-        # Add the transaction to the ledger
         self.transactions[transaction.transaction_id] = transaction
         self.pending_transactions.add(transaction.transaction_id)
-
-        # Update the approval graph
         for tip in tips:
             self.approval_graph[tip].add(transaction.transaction_id)
 
     def is_transaction_confirmed(self, transaction_id):
-        """
-        Checks if the transaction is confirmed based on the number of subsequent transactions referencing it.
-        """
         if transaction_id in self.confirmed_transactions:
             return True
         subsequent_transactions = self.get_subsequent_transactions(transaction_id)
         if len(subsequent_transactions) >= self.confirmation_threshold:
             self.confirmed_transactions.add(transaction_id)
-            if transaction_id in self.pending_transactions:
-                self.pending_transactions.remove(transaction_id)
+            self.pending_transactions.remove(transaction_id)
             return True
         return False
 
     def get_subsequent_transactions(self, transaction_id):
-        """
-        Retrieves all subsequent transactions that reference the given transaction_id directly or indirectly.
-        """
         subsequent_transactions = set()
         transactions_to_process = [transaction_id]
         while transactions_to_process:
@@ -75,10 +63,6 @@ class Ledger:
                 raise ValueError(f"Tip {tip_id} is invalid or already confirmed.")
 
     def select_tips(self):
-        """
-        Selects two tips (unconfirmed transactions) to be approved by a new transaction.
-        For simplicity, this example selects two random tips.
-        """
         if len(self.pending_transactions) < 2:
             return list(self.pending_transactions)
         return random.sample(self.pending_transactions, 2)
@@ -93,31 +77,14 @@ class Ledger:
         self.shard_manager = ShardManager(num_shards=10)  # Initialize ShardManager with 10 shards
 
     def add_transaction(self, transaction):
-        """
-        Adds a transaction to the ledger after validation and verification.
-        """
         self.logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
-
-        # Verify and validate the transaction
-        if not self.verify_transaction_signature(transaction):
-            self.logger.error(f"Invalid transaction signature for {transaction.transaction_id}.")
-            raise ValueError("Invalid transaction signature.")
-
-        # Verify the tips the transaction is approving
-        self.verify_tips(transaction.dependencies)
-
-        if not self.verify_transaction(transaction):
-            raise ValueError("Invalid transaction.")
-
-        # Assign the transaction to a shard
+        if not self.pulse_consensus.validate_and_reach_consensus(transaction):
+            self.logger.error(f"Transaction {transaction.transaction_id} failed consensus validation.")
+            return False
         shard_id = self.shard_manager.assign_shard(transaction)
-        self.logger.info(f"Transaction {transaction.transaction_id} assigned to shard {shard_id}")
-
-        # Process the transaction in the assigned shard
         self.shard_manager.process_transaction_in_shard(transaction, shard_id)
-
-        # Attach the transaction to the DAG
         self.attach_transaction_to_dag(transaction)
+        return True
 
     def verify_transaction_signature(self, transaction):
         """
@@ -135,34 +102,16 @@ class Ledger:
         return sender_public_key
 
     def confirm_transaction(self, transaction_id):
-        """
-        Confirms a transaction and updates the ledger and wallet balances.
-        """
-        self.logger.info(f"Confirming transaction {transaction_id}")
-
-        # Check if the transaction exists and is pending confirmation
-        if transaction_id not in self.transactions or transaction_id in self.confirmed_transactions:
-            self.logger.warning(f"Transaction {transaction_id} not found or already confirmed.")
+        transaction = self.transactions.get(transaction_id)
+        if not transaction:
+            self.logger.warning(f"Transaction {transaction_id} not found.")
             return False
-
-        # Get the transaction details
-        transaction = self.transactions[transaction_id]
-
-        # Check if the transaction has enough confirmations to be confirmed
-        if not self.is_transaction_confirmed(transaction_id):
-            self.logger.warning(f"Transaction {transaction_id} does not have enough confirmations yet.")
-            return False
-
-        # Confirm the transaction and update balances
-        if not self.can_update_balances(transaction):
-            self.logger.warning(f"Insufficient funds to confirm transaction {transaction_id}.")
-            return False
-
-        self.update_balances(transaction)
-        return True
+        if self.pulse_consensus.confirm_transaction(transaction):
+            self.update_balances(transaction)
+            self.logger.info(f"Transaction {transaction_id} confirmed.")
             return True
         else:
-            self.logger.warning(f"Insufficient funds to confirm transaction {transaction_id}.")
+            self.logger.warning(f"Transaction {transaction_id} could not be confirmed.")
             return False
 
     def verify_transaction(self, transaction):
@@ -180,8 +129,7 @@ class Ledger:
         return sender_balance >= transaction.amount
 
     def update_balances(self, transaction):
-        """
-        Updates the ledger balances based on the transaction details.
-        """
-        self.balance_sheet[transaction.sender] -= transaction.amount
-        self.balance_sheet[transaction.receiver] += transaction.amount
+        sender_balance = self.balance_sheet.get(transaction.sender, 0)
+        receiver_balance = self.balance_sheet.get(transaction.receiver, 0)
+        self.balance_sheet[transaction.sender] = sender_balance - transaction.amount
+        self.balance_sheet[transaction.receiver] = receiver_balance + transaction.amount
