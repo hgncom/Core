@@ -8,9 +8,12 @@ class DAG:
     def add_node(self, node):
         if node.transaction_id in self.nodes:
             raise ValueError(f"Transaction {node.transaction_id} already exists in the DAG")
+        main_logger.info(f"Attempting to add transaction {node.transaction_id} to the DAG")
 
         if not self.pulse_consensus.validate_and_reach_consensus(node.to_dict()):
             raise Exception("Failed to reach consensus for transaction. Node not added to DAG.")
+        main_logger.info(f"Transaction {node.transaction_id} successfully added to the DAG")
+        self.nodes[node.transaction_id] = node
 
         self.nodes[node.transaction_id] = node
 

@@ -15,6 +15,7 @@ class NetworkCommunication:
 
     def broadcast_transaction(self, transaction, exclude=None):
         """Broadcasts a transaction to all peers except the excluded ones."""
+        main_logger.info(f"Broadcasting transaction {transaction['id']} to peers")
         exclude = exclude or set()
         peers_to_notify = self.peers.difference(exclude)
         for peer in peers_to_notify:

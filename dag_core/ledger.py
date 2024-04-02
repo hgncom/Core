@@ -79,13 +79,14 @@ class Ledger:
         self.shard_manager = ShardManager(num_shards=10)  # Initialize ShardManager with 10 shards
 
     def add_transaction(self, transaction):
-        self.logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
+        main_logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
         if not self.pulse_consensus.validate_and_reach_consensus(transaction.to_dict()):
-            self.logger.error(f"Transaction {transaction.transaction_id} failed consensus validation.")
+            main_logger.error(f"Transaction {transaction.transaction_id} failed consensus validation.")
             return False
         shard_id = self.shard_manager.assign_shard(transaction)
         self.shard_manager.process_transaction_in_shard(transaction, shard_id)
         self.attach_transaction_to_dag(transaction)
+        main_logger.info(f"Transaction {transaction.transaction_id} successfully added to the ledger")
         return True
 
     def verify_transaction_signature(self, transaction):
