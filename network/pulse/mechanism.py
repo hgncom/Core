@@ -64,7 +64,8 @@ class PulseConsensusMechanism:
 
     def discover_peers(self):
         with self.network_communication.lock:
-            current_peers = list(self.network_communication.peers)
+            with self.network_communication.lock:
+                current_peers = list(self.network_communication.peers)
         for peer in current_peers:
             try:
                 response = requests.get(f"{peer}/peers", timeout=5)
