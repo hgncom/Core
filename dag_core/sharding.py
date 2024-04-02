@@ -41,6 +41,22 @@ class ShardManager:
         shard_id = int(sender_hash, 16) % self.num_shards
         return shard_id
 
+    def process_transaction_in_shard(self, transaction, shard_id):
+        """
+        Processes a transaction within the specified shard.
+        """
+        # Retrieve the ledger for the shard
+        shard_ledger = self.shard_ledgers.get(shard_id)
+        if not shard_ledger:
+            raise ValueError(f"Shard {shard_id} does not have an associated ledger.")
+
+        # Perform shard-specific transaction validation and consensus
+        if shard_ledger.validate_transaction(transaction):
+            shard_ledger.add_transaction(transaction)
+            return True
+        else:
+            return False
+
     def add_node_to_shard(self, node_id, shard_id):
         """
         Adds a node to a shard.
@@ -68,6 +84,12 @@ class ShardManager:
         # This would involve updating the ledger to reassign the transactions
         # from the leaving node to other nodes in the shard.
         pass
+
+    def get_shard_ledger(self, shard_id):
+        """
+        Retrieves the ledger for a specific shard.
+        """
+        return self.shard_ledgers.get(shard_id)
 
     def get_shard_transactions(self, shard_id):
         """
