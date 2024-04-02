@@ -18,7 +18,8 @@ class WalletPlugin(WalletInterface):
         # Retrieve the Fernet key from the app's configuration
         fernet_key = 'aqg0ahE_7tGYt8KauLRLNyeEhSAOm0nehgIlcQ-zbkg='
         # Initialize the Ledger with the necessary configuration
-        self.ledger = Ledger(fernet_key=fernet_key)
+        self.network_communication = NetworkCommunication(node_url="http://localhost:5000")  # Replace with actual node URL
+        self.ledger = Ledger(fernet_key=fernet_key, network_communication=self.network_communication)
         # Initialize other necessary components like the peer network
         self.peer_network = PeerNetwork() # Assuming PeerNetwork is implemented in the network module
         # Ensures that the logger is configured for the class
