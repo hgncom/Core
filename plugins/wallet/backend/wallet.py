@@ -14,7 +14,8 @@ from .wallet_interface import WalletInterface
 
 class WalletPlugin(WalletInterface):
     def __init__(self):
-        self.ledger = Ledger()
+        pulse_consensus_mechanism_params = {}  # Replace with actual parameters if needed
+        self.ledger = Ledger(pulse_consensus_mechanism_params)
         self.peer_network = PeerNetwork()  # Assuming PeerNetwork is implemented in the network module
         # Ensures that the logger is configured for the class
         logging.basicConfig(level=logging.INFO)
