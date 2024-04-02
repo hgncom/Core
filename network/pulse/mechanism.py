@@ -33,7 +33,10 @@ class PulseConsensusMechanism:
         self.ledger_interaction = ledger_interaction
         self.network_communication = network_communication
         self.fernet = Fernet(encryption_key)
-        self.init_background_tasks()
+        if self.network_communication is not None:
+            self.init_background_tasks()
+        else:
+            logger.error("Network communication must be initialized before starting background tasks.")
 
     def init_background_tasks(self):
         threading.Thread(target=self.peer_discovery_task, daemon=True).start()
