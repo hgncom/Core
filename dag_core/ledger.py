@@ -118,15 +118,18 @@ class Ledger:
         # Get the transaction details
         transaction = self.transactions[transaction_id]
 
-        # Update balances and transaction status
-        if self.can_update_balances(transaction):
-            self.update_balances(transaction)
-            if self.is_transaction_confirmed(transaction_id):
-                self.update_balances(transaction)
-                return True
-            else:
-                self.logger.warning(f"Transaction {transaction_id} does not have enough confirmations yet.")
-                return False
+        # Check if the transaction has enough confirmations to be confirmed
+        if not self.is_transaction_confirmed(transaction_id):
+            self.logger.warning(f"Transaction {transaction_id} does not have enough confirmations yet.")
+            return False
+
+        # Confirm the transaction and update balances
+        if not self.can_update_balances(transaction):
+            self.logger.warning(f"Insufficient funds to confirm transaction {transaction_id}.")
+            return False
+
+        self.update_balances(transaction)
+        return True
             return True
         else:
             self.logger.warning(f"Insufficient funds to confirm transaction {transaction_id}.")
