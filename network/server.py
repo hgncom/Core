@@ -30,17 +30,23 @@ class PeerNetwork:
             self.peers.add(peer_url)
 
     def broadcast_transaction(self, transaction_data):
+        successful_broadcasts = 0
+        failed_broadcasts = 0
         self.logger.info(f"Broadcasting transaction {transaction_data.get('transaction_id')} to peers")
-        for peer in self.peers:
+        for peer in list(self.peers):  # Convert to list to avoid runtime errors if peers set changes
             try:
-                response = requests.post(f"{peer}/submit-transaction", json=transaction_data)
+                response = requests.post(f"{peer}/submit-transaction", json=transaction_data, timeout=5)
                 if response.status_code == 200:
-                    print(f"Transaction broadcasted to {peer}")
+                    successful_broadcasts += 1
+                    self.logger.info(f"Transaction broadcasted to {peer}")
                 else:
-                    print(f"Failed to broadcast transaction to {peer}")
+                    failed_broadcasts += 1
+                    self.logger.warning(f"Failed to broadcast transaction to {peer}, status code: {response.status_code}")
             except requests.exceptions.RequestException as e:
-                print(f"Network error when broadcasting to {peer}: {e}")
+                failed_broadcasts += 1
+                self.peers.remove(peer)  # Remove unresponsive peer
                 self.logger.error(f"Network error when broadcasting to {peer}: {e}")
+        return successful_broadcasts, failed_broadcasts
 
     def share_known_peers(self):
         """
