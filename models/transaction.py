@@ -11,5 +11,19 @@ class TransactionModel(db.Model):
     transaction_id = db.Column(db.String(120), unique=True, nullable=False)
     confirmed = db.Column(db.Boolean, default=False, nullable=False)
 
+    def to_dict(self):
+        """
+        Serialize the transaction to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'sender': self.sender,
+            'receiver': self.receiver,
+            'amount': self.amount,
+            'signature': self.signature,
+            'transaction_id': self.transaction_id,
+            'confirmed': self.confirmed
+        }
+
     def __repr__(self):
         return f'<Transaction {self.transaction_id}>'
