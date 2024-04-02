@@ -3,6 +3,7 @@ from collections import defaultdict
 import random
 import logging
 from flask import current_app
+from cryptography.fernet import Fernet
 
 # Configure logging
 main_logger = logging.getLogger('Ledger')
@@ -12,9 +13,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 main_logger.addHandler(file_handler)
 
-
 class Ledger:
-    def __init__(self, pulse_consensus_mechanism_params, fernet_key):
+    def __init__(self):
         self.logger = main_logger
         self.transactions = {}
         self.confirmed_transactions = set()
@@ -22,7 +22,12 @@ class Ledger:
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
         self.confirmation_threshold = 5
+
+        # Initialize Fernet key from the Flask app's configuration
+        fernet_key = current_app.config['FERNET_KEY']
+        # Initialize PulseConsensusMechanism with the Fernet key
         self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=None, encryption_key=fernet_key)
+        self.shard_manager = ShardManager(num_shards=10)
         # self.shard_manager initialization will be handled elsewhere to avoid circular import
                 # self.shard_manager initialization will be handled elsewhere to avoid circular import
 
