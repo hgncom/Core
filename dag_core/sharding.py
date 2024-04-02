@@ -8,9 +8,13 @@ class ShardManager:
         self.num_shards = num_shards
         self.shard_queues = {i: [] for i in range(num_shards)}  # Message queues for each shard
         self.shards = {i: set() for i in range(num_shards)}  # Keep track of nodes in each shard
-        self.shard_ledgers = {i: Ledger() for i in range(num_shards)}  # Ledger instances for each shard
+        self.shard_ledgers = {i: None for i in range(num_shards)}  # Placeholder for Ledger instances
         self.lock = threading.Lock()  # Lock for synchronizing access to shard data
 
+    def initialize_shard_ledgers(self):
+        from .ledger import Ledger
+        for i in range(self.num_shards):
+            self.shard_ledgers[i] = Ledger()
     def process_transaction_in_shard(self, transaction, shard_id):
         shard_ledger = self.shard_ledgers[shard_id]
         if shard_ledger.pulse_consensus.validate_and_reach_consensus(transaction.to_dict()):

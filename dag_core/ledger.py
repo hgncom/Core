@@ -25,9 +25,8 @@ class Ledger:
         self.confirmation_threshold = 5
         fernet_key = current_app.config['FERNET_KEY']
         self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=None, encryption_key=fernet_key)
-        self.shard_manager = ShardManager(num_shards=10)
-        from .sharding import ShardManager
-        self.shard_manager = ShardManager(num_shards=10)
+        # self.shard_manager initialization will be handled elsewhere to avoid circular import
+                # self.shard_manager initialization will be handled elsewhere to avoid circular import
 
     def attach_transaction_to_dag(self, transaction):
         tips = self.select_tips()
