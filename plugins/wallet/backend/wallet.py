@@ -4,6 +4,7 @@ from network.server import PeerNetwork
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from .wallet_interface import WalletInterface
+from network.pulse.networking import NetworkCommunication
 from models import UserModel, WalletModel, db
 import logging
 
