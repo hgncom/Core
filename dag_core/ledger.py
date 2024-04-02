@@ -19,6 +19,14 @@ class Ledger:
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
 
+    def verify_tips(self, tips):
+        """
+        Verifies the tips that a new transaction is approving.
+        """
+        for tip_id in tips:
+            if tip_id not in self.transactions or tip_id in self.confirmed_transactions:
+                raise ValueError(f"Tip {tip_id} is invalid or already confirmed.")
+
     def select_tips(self):
         """
         Selects two tips (unconfirmed transactions) to be approved by a new transaction.
@@ -42,6 +50,9 @@ class Ledger:
         self.logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
 
         # Verify and validate the transaction
+        # Verify the tips the transaction is approving
+        self.verify_tips(transaction.dependencies)
+
         if not self.verify_transaction(transaction):
             raise ValueError("Invalid transaction.")
 
