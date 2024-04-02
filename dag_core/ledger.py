@@ -5,7 +5,7 @@ import logging
 class Ledger:
 from flask import current_app
 
-# Configure logging
+    # Configure logging
 main_logger = logging.getLogger('Ledger')
 main_logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler('ledger.log')
