@@ -1,4 +1,5 @@
 import hashlib
+import threading
 from .ledger import Ledger
 
 class ShardManager:
@@ -7,6 +8,7 @@ class ShardManager:
         self.shard_queues = {i: [] for i in range(num_shards)}  # Message queues for each shard
         self.shards = {i: set() for i in range(num_shards)}  # Keep track of nodes in each shard
         self.shard_ledgers = {i: Ledger() for i in range(num_shards)}  # Ledger instances for each shard
+        self.lock = threading.Lock()  # Lock for synchronizing access to shard data
 
     def send_message_to_shard(self, shard_id, message):
         """
@@ -43,19 +45,58 @@ class ShardManager:
         shard_id = int(sender_hash, 16) % self.num_shards
         return shard_id
 
+    # New method to validate cross-shard transactions        involved_shards = self.get_involved_shards(transaction)
+        with self.lock:
+            for shard_id in involved_shards:
+                shard_ledger = self.shard_ledgers[shard_id]
+                if not shard_ledger.validate_transaction(transaction):
+                    return False
+        return True
+
+    def get_involved_shards(self, transaction):
+        """
+        Determines all shards involved in a transaction.
+        """
+        # Placeholder for logic to determine involved shards
+        return set([self.assign_shard(transaction)])
+
     def process_transaction_in_shard(self, transaction, shard_id):
         """
         Processes a transaction within the specified shard.
         """
         shard_ledger = self.shard_ledgers[shard_id]
+        # Ensure cross-shard transactions are valid before proceeding
         if shard_ledger.validate_transaction(transaction):
             shard_ledger.add_transaction(transaction)
             return True
         else:
             return False
 
+    # New method to synchronize shards
+    def synchronize_shards(self):
+        """
+        Synchronizes the state of all shards to ensure consistency.
+        """
+        # Placeholder for shard synchronization logic
+        # This could involve a distributed consensus algorithm like Raft or Paxos
+
+
     # Additional methods such as add_node_to_shard, remove_node_from_shard, etc., remain unchanged.
 
+        involved_shards = self.get_involved_shards(transaction)
+        with self.lock:
+            for shard_id in involved_shards:
+                shard_ledger = self.shard_ledgers[shard_id]
+                if not shard_ledger.validate_transaction(transaction):
+                    return False
+        return True
+
+    def get_involved_shards(self, transaction):
+        """
+        Determines all shards involved in a transaction.
+        """
+        # Placeholder for logic to determine involved shards
+        return set([self.assign_shard(transaction)])
 
     def process_transaction_in_shard(self, transaction, shard_id):
         """
@@ -72,6 +113,15 @@ class ShardManager:
             return True
         else:
             return False
+
+    # New method to synchronize shards
+    def synchronize_shards(self):
+        """
+        Synchronizes the state of all shards to ensure consistency.
+        """
+        # Placeholder for shard synchronization logic
+        # This could involve a distributed consensus algorithm like Raft or Paxos
+
 
     def process_transaction(self, transaction):
         """
@@ -128,6 +178,20 @@ class ShardManager:
         # This would interact with the database or in-memory data structure
         # that holds transactions for each shard.
         pass
+        involved_shards = self.get_involved_shards(transaction)
+        with self.lock:
+            for shard_id in involved_shards:
+                shard_ledger = self.shard_ledgers[shard_id]
+                if not shard_ledger.validate_transaction(transaction):
+                    return False
+        return True
+
+    def get_involved_shards(self, transaction):
+        """
+        Determines all shards involved in a transaction.
+        """
+        # Placeholder for logic to determine involved shards
+        return set([self.assign_shard(transaction)])
 
     def process_transaction_in_shard(self, transaction, shard_id):
         """
