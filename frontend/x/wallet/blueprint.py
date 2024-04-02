@@ -74,35 +74,30 @@ def send():
                 new_transaction.sign(sender_private_key_pem)
                 db.session.add(new_transaction)
                 main_logger.info(f"New transaction created with ID {new_transaction.transaction_id}.")
-                db.session.add(new_transaction)                
+                # Attempt to sign the transaction
+                try:
+                    new_transaction.sign(sender_private_key_pem)
+                except Exception as e:
+                    main_logger.exception(f"Failed to sign transaction {new_transaction.transaction_id}: {e}")
+                    flash('Failed to sign transaction.', 'error')
+                    return render_template('send.html')
 
-                # Update wallet balances
+                # Update wallet balances and commit the transaction
                 sender_wallet.amount -= amount
                 recipient_wallet.amount += amount
                 db.session.commit()
-            main_logger.info("Transaction committed to the database and wallet balances updated.")
-
-            # Broadcast the transaction to the peer network
-            try:
-                peer_network.broadcast_transaction(new_transaction.to_dict())
-                main_logger.info(f"Transaction {new_transaction.transaction_id} broadcasted to the peer network.")
-            except Exception as e:
-                main_logger.exception(f"Failed to broadcast transaction {new_transaction.transaction_id} to the peer network: {e}")
-
-
-                db.session.commit()
-            main_logger.info("Transaction committed to the database and wallet balances updated.")
-
-            # Broadcast the transaction to the peer network
-            try:
-                peer_network.broadcast_transaction(new_transaction.to_dict())
-                main_logger.info(f"Transaction {new_transaction.transaction_id} broadcasted to the peer network.")
-            except Exception as e:
-                main_logger.exception(f"Failed to broadcast transaction {new_transaction.transaction_id} to the peer network: {e}")
-
                 main_logger.info("Transaction committed to the database and wallet balances updated.")
-                flash('Funds successfully sent.', 'success')
-                return redirect(url_for('.dashboard'))
+
+                # Broadcast the transaction to the peer network
+                try:
+                    peer_network.broadcast_transaction(new_transaction.to_dict())
+                    main_logger.info(f"Transaction {new_transaction.transaction_id} broadcasted to the peer network.")
+                    flash('Funds successfully sent.', 'success')
+                    return redirect(url_for('.dashboard'))
+                except Exception as e:
+                    main_logger.exception(f"Failed to broadcast transaction {new_transaction.transaction_id} to the peer network: {e}")
+                    flash('Failed to broadcast transaction.', 'error')
+                    return render_template('send.html')
             else:
                 flash('Insufficient funds or invalid recipient address.', 'error')
                 main_logger.error("Transaction failed: Insufficient funds or invalid recipient address.")
