@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/wallet.css') }}">
+</head>
+<body>
+    <div>
+        <h2>Wallet Address: <span id="wallet-address">{{ wallet.address }}</span></h2>
+        <!-- Display other wallet details -->
+    </div>
+    <script src="{{ url_for('static', filename='js/wallet.js') }}"></script>
+</body>
+</html>
