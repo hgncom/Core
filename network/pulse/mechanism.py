@@ -14,15 +14,16 @@ logger = logging.getLogger('PulseConsensus')
 def rate_limited(max_per_minute):
     """Decorator to rate-limit function calls."""
     min_interval = 60.0 / max_per_minute
-    def decorator(func):
-        last_called = threading.Lock()
-        last_called.time = None
+    last_called = {}
+    def decorator(func):        
+        if func not in last_called:
+            last_called[func] = {'time': None, 'lock': threading.Lock()}
         def wrapper(*args, **kwargs):
-            with last_called:
+            with last_called[func]['lock']:
                 current_time = time.monotonic()
-                if last_called.time is not None and current_time - last_called.time < min_interval:
-                    time.sleep(min_interval - (current_time - last_called.time))
-                last_called.time = time.monotonic()
+                if last_called[func]['time'] is not None and current_time - last_called[func]['time'] < min_interval:
+                    time.sleep(min_interval - (current_time - last_called[func]['time']))
+                last_called[func]['time'] = time.monotonic()
             return func(*args, **kwargs)
         return wrapper
     return decorator
