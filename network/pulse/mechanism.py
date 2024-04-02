@@ -63,7 +63,8 @@ class PulseConsensusMechanism:
             time.sleep(300)
 
     def discover_peers(self):
-        current_peers = list(self.network_communication.peers)
+        with self.network_communication.lock:
+            current_peers = list(self.network_communication.peers)
         for peer in current_peers:
             try:
                 response = requests.get(f"{peer}/peers", timeout=5)
@@ -78,7 +79,7 @@ class PulseConsensusMechanism:
 
     def transaction_gossip_task(self):
         while True:
-            transactions = self.ledger_interaction.get_recent_transactions()
+            transactions = self.ledger_interaction.get_transactions_for_gossip()
             for transaction in transactions:
                 self.gossip_transaction(transaction)
             time.sleep(10)
