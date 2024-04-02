@@ -19,6 +19,22 @@ class Ledger:
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
 
+    def attach_transaction_to_dag(self, transaction):
+        """
+        Attaches the transaction to the DAG by selecting tips and updating the approval graph.
+        """
+        # Select tips to approve and record the approval
+        tips = self.select_tips()
+        self.approve_transaction(transaction.transaction_id, tips)
+
+        # Add the transaction to the ledger
+        self.transactions[transaction.transaction_id] = transaction
+        self.pending_transactions.add(transaction.transaction_id)
+
+        # Update the approval graph
+        for tip in tips:
+            self.approval_graph[tip].add(transaction.transaction_id)
+
     def verify_tips(self, tips):
         """
         Verifies the tips that a new transaction is approving.
@@ -56,13 +72,8 @@ class Ledger:
         if not self.verify_transaction(transaction):
             raise ValueError("Invalid transaction.")
 
-        # Add the transaction to the ledger
-        self.transactions[transaction.transaction_id] = transaction
-        self.pending_transactions.add(transaction.transaction_id)
-
-        # Select tips to approve and record the approval
-        tips = self.select_tips()
-        self.approve_transaction(transaction.transaction_id, tips)
+        # Attach the transaction to the DAG
+        self.attach_transaction_to_dag(transaction)
 
     def confirm_transaction(self, transaction_id):
         """
