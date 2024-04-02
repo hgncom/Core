@@ -60,7 +60,7 @@ def send():
         try:
             main_logger.info(f"Attempting to send funds from user {username} to {recipient_address} with amount {amount}.")           
             # Retrieve sender and recipient wallets from the database
-            sender_wallet = WalletModel.query.filter_by(user_id=session['user_id']).first()
+            sender_wallet = WalletModel.query.join(UserModel).filter(UserModel.username == username).first()
             recipient_wallet = WalletModel.query.filter_by(wallet_address=recipient_address).first()
 
             # Check if sender has enough balance and recipient exists, then perform the transaction
@@ -115,4 +115,3 @@ def send():
 from utilities.logging import create_main_logger
 
 main_logger = create_main_logger()
-
