@@ -20,6 +20,10 @@ class Transaction:
         self.transaction_id = transaction_id if transaction_id else self.generate_transaction_id()
         self.dependencies = dependencies if dependencies is not None else []
 
+    def generate_transaction_id(self):
+        # Generate a unique transaction ID
+        return str(uuid.uuid4())
+
     def sign(self, private_key):
         """
         Signs the transaction using the provided private key.
@@ -64,6 +68,10 @@ class Transaction:
             return True
         except InvalidSignature:
             return False
+
+    def to_bytes(self):
+        # This method should serialize the transaction's data for signing or verification.
+        return f"{self.sender}{self.receiver}{self.amount}".encode()
 
     def to_bytes(self):
         # This method should serialize the transaction's data for signing or verification.

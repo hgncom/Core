@@ -95,6 +95,10 @@ class Ledger:
         self.logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
 
         # Verify and validate the transaction
+        if not self.verify_transaction_signature(transaction):
+            self.logger.error(f"Invalid transaction signature for {transaction.transaction_id}.")
+            raise ValueError("Invalid transaction signature.")
+
         # Verify the tips the transaction is approving
         self.verify_tips(transaction.dependencies)
 
@@ -103,6 +107,21 @@ class Ledger:
 
         # Attach the transaction to the DAG
         self.attach_transaction_to_dag(transaction)
+
+    def verify_transaction_signature(self, transaction):
+        """
+        Verifies the transaction's signature.
+        """
+        sender_public_key = self.get_public_key(transaction.sender)
+        return transaction.verify_signature(sender_public_key)
+
+    def get_public_key(self, sender_address):
+        """
+        Retrieves the public key for the given sender address.
+        """
+        # Placeholder for public key retrieval logic
+        # In practice, this would fetch the public key from a trusted source or the user's wallet
+        return sender_public_key
 
     def confirm_transaction(self, transaction_id):
         """
