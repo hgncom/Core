@@ -1,19 +1,19 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from flask import make_response
-import uuid
-from plugins.wallet.backend.wallet import WalletPlugin
+import uuid, logging
+from network.server import PeerNetwork
 from models.wallet import WalletModel
 from models.transaction import TransactionModel
 from models.base import db
-import traceback
-import traceback
-import logging
+from utilities.logging import create_main_logger
+from plugins.wallet.backend.wallet import WalletPlugin
 
-# Set logging level to INFO for production
-logging.basicConfig(level=logging.INFO)
+wallet_plugin = WalletPlugin()
+
+main_logger = create_main_logger()
 
 # Instantiate WalletPlugin and Blueprint
-wallet_plugin = WalletPlugin()
+peer_network = PeerNetwork()
 wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', static_folder='static')
 
 @wallet_blueprint.route('/dashboard')
@@ -43,55 +43,76 @@ def send():
         return redirect(url_for('user.login'))
 
     if request.method == 'POST':
+        main_logger.info("Initiating transaction process.")
         # Retrieve form data
         recipient_address = request.form.get('recipient_address')
         amount = request.form.get('amount', type=float)
+        main_logger.info(f"Form data retrieved: recipient_address={recipient_address}, amount={amount}")
         # Validation for recipient address and amount
 
         # Validation for recipient address and amount
         if not recipient_address or amount <= 0:
             flash('Invalid recipient address or amount', 'error')
+            main_logger.error("Validation failed: Invalid recipient address or amount.")
             return render_template('send.html')
 
         username = session['username']
-        try:            
+        try:
+            main_logger.info(f"Attempting to send funds from user {username} to {recipient_address} with amount {amount}.")           
             # Retrieve sender and recipient wallets from the database
             sender_wallet = WalletModel.query.filter_by(user_id=session['user_id']).first()
             recipient_wallet = WalletModel.query.filter_by(wallet_address=recipient_address).first()
 
             # Check if sender has enough balance and recipient exists, then perform the transaction
+            main_logger.info("Sender and recipient wallets retrieved from the database.")
             # Check if sender has enough balance and recipient exists, then perform the transaction
             if sender_wallet and recipient_wallet and sender_wallet.amount >= amount:
                 # Create a new transaction
                 new_transaction = TransactionModel(sender=sender_wallet.wallet_address, receiver=recipient_wallet.wallet_address, amount=amount, signature='placeholder_signature', transaction_id=str(uuid.uuid4()))
+                db.session.add(new_transaction)
+                main_logger.info(f"New transaction created with ID {new_transaction.transaction_id}.")
                 db.session.add(new_transaction)                
 
                 # Update wallet balances
                 sender_wallet.amount -= amount
                 recipient_wallet.amount += amount
                 db.session.commit()
+            main_logger.info("Transaction committed to the database and wallet balances updated.")
+
+            # Broadcast the transaction to the peer network
+            try:
+                peer_network.broadcast_transaction(new_transaction.to_dict())
+                main_logger.info(f"Transaction {new_transaction.transaction_id} broadcasted to the peer network.")
+            except Exception as e:
+                main_logger.exception(f"Failed to broadcast transaction {new_transaction.transaction_id} to the peer network: {e}")
+
 
                 db.session.commit()
+            main_logger.info("Transaction committed to the database and wallet balances updated.")
+
+            # Broadcast the transaction to the peer network
+            try:
+                peer_network.broadcast_transaction(new_transaction.to_dict())
+                main_logger.info(f"Transaction {new_transaction.transaction_id} broadcasted to the peer network.")
+            except Exception as e:
+                main_logger.exception(f"Failed to broadcast transaction {new_transaction.transaction_id} to the peer network: {e}")
+
+                main_logger.info("Transaction committed to the database and wallet balances updated.")
                 flash('Funds successfully sent.', 'success')
                 return redirect(url_for('.dashboard'))
             else:
                 flash('Insufficient funds or invalid recipient address.', 'error')
-                response = make_response(render_template('send.html', recipient_address=recipient_address, amount=amount))
-                session.pop('_flashes', None)  # Clear flashed messages
-                return response
-        except Exception as e:  # Capture the specific exception message
-            # Log and display error message
-            logging.error(f"Error sending funds from user {username}: {e}")
+                main_logger.error("Transaction failed: Insufficient funds or invalid recipient address.")
+                return render_template('send.html')
+        except Exception as e:
+            main_logger.exception(f"Exception occurred during transaction process: {e}")
             flash(f'An error occurred while sending funds: {e}', 'error')
-            response = make_response(render_template('send.html', recipient_address=recipient_address, amount=amount))
-            session.pop('_flashes', None)  # Clear flashed messages
-            return response
-            # Log and display error message
-            logging.error(f"Error sending funds from user {username}: {e}")
-            flash(f'An error occurred while sending funds: {e}', 'error')
-            response = make_response(render_template('send.html'))
-            session.pop('_flashes', None)  # Clear flashed messages
-            return response
+            return render_template('send.html')
     else:
         # Render the send form
         return render_template('send.html')
+            # The rest of the code remains unchanged
+from utilities.logging import create_main_logger
+
+main_logger = create_main_logger()
+
