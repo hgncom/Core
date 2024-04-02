@@ -68,7 +68,10 @@ def send():
             # Check if sender has enough balance and recipient exists, then perform the transaction
             if sender_wallet and recipient_wallet and sender_wallet.amount >= amount:
                 # Create a new transaction
-                new_transaction = TransactionModel(sender=sender_wallet.wallet_address, receiver=recipient_wallet.wallet_address, amount=amount, signature='placeholder_signature', transaction_id=str(uuid.uuid4()))
+                new_transaction = TransactionModel(sender=sender_wallet.wallet_address, receiver=recipient_wallet.wallet_address, amount=amount, signature=None, transaction_id=str(uuid.uuid4()))
+                # Sign the transaction with the sender's private key (retrieved securely)
+                sender_private_key_pem = get_private_key_for_user(sender_wallet.user_id)  # This function needs to be implemented to retrieve the private key securely
+                new_transaction.sign(sender_private_key_pem)
                 db.session.add(new_transaction)
                 main_logger.info(f"New transaction created with ID {new_transaction.transaction_id}.")
                 db.session.add(new_transaction)                
