@@ -63,19 +63,18 @@ class PulseConsensusMechanism:
             time.sleep(300)
 
     def discover_peers(self):
-        with self.network_communication.lock:
-            with self.network_communication.lock:
+        with self.network_communication.lock:  # Removed the nested lock
                 current_peers = list(self.network_communication.peers)
         for peer in current_peers:
             try:
                 response = requests.get(f"{peer}/peers", timeout=5)
                 if response.status_code == 200:
                     new_peers = response.json().get('peers', [])
-                    with threading.Lock():
+                    with self.network_communication.lock:  # Use the existing lock
                         self.network_communication.peers.update(new_peers - {peer})
             except Exception as e:
                 logger.error(f"Failed to discover peers from {peer}: {e}")
-                with threading.Lock():
+                with self.network_communication.lock:  # Use the existing lock
                     self.network_communication.peers.discard(peer)
 
     def transaction_gossip_task(self):
