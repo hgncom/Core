@@ -1,3 +1,4 @@
+from .sharding import ShardManager
 from network.pulse.mechanism import PulseConsensusMechanism
 from collections import defaultdict
 import random
@@ -14,7 +15,7 @@ file_handler.setFormatter(formatter)
 main_logger.addHandler(file_handler)
 
 class Ledger:
-    def __init__(self, pulse_consensus_mechanism_params, fernet_key):
+    def __init__(self, fernet_key):
         self.logger = main_logger
         self.transactions = {}
         self.confirmed_transactions = set()
@@ -24,6 +25,7 @@ class Ledger:
         self.confirmation_threshold = 5
 
         # Initialize Fernet key from the Flask app's configuration
+        fernet_key = 'aqg0ahE_7tGYt8KauLRLNyeEhSAOm0nehgIlcQ-zbkg='
         # Initialize PulseConsensusMechanism with the Fernet key
         self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=None, encryption_key=fernet_key)
         self.shard_manager = ShardManager(num_shards=10)
