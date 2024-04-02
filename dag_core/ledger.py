@@ -22,7 +22,7 @@ class Ledger:
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
         self.confirmation_threshold = 5
-        self.pulse_consensus = PulseConsensusMechanism(**pulse_consensus_mechanism_params)
+        self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=None, encryption_key='YourEncryptionKeyHere')
         self.shard_manager = ShardManager(num_shards=10)
 
     def attach_transaction_to_dag(self, transaction):
@@ -78,7 +78,7 @@ class Ledger:
 
     def add_transaction(self, transaction):
         self.logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
-        if not self.pulse_consensus.validate_and_reach_consensus(transaction):
+        if not self.pulse_consensus.validate_and_reach_consensus(transaction.to_dict()):
             self.logger.error(f"Transaction {transaction.transaction_id} failed consensus validation.")
             return False
         shard_id = self.shard_manager.assign_shard(transaction)

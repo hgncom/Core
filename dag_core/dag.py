@@ -3,14 +3,13 @@ from network.pulse.mechanism import PulseConsensusMechanism
 class DAG:
     def __init__(self, pulse_consensus_mechanism_params):
         self.nodes = {}
-        self.pulse_consensus = PulseConsensusMechanism(**pulse_consensus_mechanism_params)
+        self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=None, network_communication=None, encryption_key='YourEncryptionKeyHere')
 
     def add_node(self, node):
         if node.transaction_id in self.nodes:
             raise ValueError(f"Transaction {node.transaction_id} already exists in the DAG")
 
-        # Here, before adding the node, we ensure it has been validated and reached consensus.
-        if not self.pulse_consensus.validate_and_reach_consensus(node):
+        if not self.pulse_consensus.validate_and_reach_consensus(node.to_dict()):
             raise Exception("Failed to reach consensus for transaction. Node not added to DAG.")
 
         self.nodes[node.transaction_id] = node

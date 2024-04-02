@@ -12,7 +12,8 @@ class ShardManager:
         self.lock = threading.Lock()  # Lock for synchronizing access to shard data
 
     def process_transaction_in_shard(self, transaction, shard_id):
-        if PulseConsensusMechanism.validate_and_reach_consensus(transaction):
+        shard_ledger = self.shard_ledgers[shard_id]
+        if shard_ledger.pulse_consensus.validate_and_reach_consensus(transaction.to_dict()):
             # Shard-specific processing
             pass
 
