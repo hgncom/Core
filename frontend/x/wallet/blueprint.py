@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from flask import make_response
+from models import UserModel, WalletModel
 import uuid, logging
 from network.server import PeerNetwork
-from models.wallet import WalletModel
 from models.transaction import TransactionModel
 from models.base import db
 from utilities.logging import create_main_logger
