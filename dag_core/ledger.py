@@ -24,7 +24,6 @@ class Ledger:
         self.confirmation_threshold = 5
 
         # Initialize Fernet key from the Flask app's configuration
-        fernet_key = current_app.config['FERNET_KEY']
         # Initialize PulseConsensusMechanism with the Fernet key
         self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=None, encryption_key=fernet_key)
         self.shard_manager = ShardManager(num_shards=10)
