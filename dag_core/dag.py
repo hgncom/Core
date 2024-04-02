@@ -1,9 +1,9 @@
 from network.pulse.mechanism import PulseConsensusMechanism
 
 class DAG:
-    def __init__(self, pulse_consensus_mechanism_params):
+    def __init__(self, pulse_consensus_mechanism_params, network_communication):
         self.nodes = {}
-        self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=None, network_communication=None, encryption_key='YourEncryptionKeyHere')
+        self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=None, network_communication=network_communication, encryption_key='YourEncryptionKeyHere')
 
     def add_node(self, node):
         if node.transaction_id in self.nodes:
