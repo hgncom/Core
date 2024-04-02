@@ -1,6 +1,6 @@
 import hashlib
 import threading
-from .ledger import Ledger
+class ShardManager:
 from network.pulse.mechanism import PulseConsensusMechanism
 
 class ShardManager:

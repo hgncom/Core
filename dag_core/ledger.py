@@ -2,7 +2,7 @@ from network.pulse.mechanism import PulseConsensusMechanism
 from collections import defaultdict
 import random
 import logging
-from .sharding import ShardManager
+class Ledger:
 from flask import current_app
 
 # Configure logging
@@ -25,6 +25,8 @@ class Ledger:
         self.confirmation_threshold = 5
         fernet_key = current_app.config['FERNET_KEY']
         self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=None, encryption_key=fernet_key)
+        self.shard_manager = ShardManager(num_shards=10)
+        from .sharding import ShardManager
         self.shard_manager = ShardManager(num_shards=10)
 
     def attach_transaction_to_dag(self, transaction):
