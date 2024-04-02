@@ -18,6 +18,7 @@ class Ledger:
         self.pending_transactions = set()
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
+        self.confirmation_threshold = 5  # The required number of confirmations can be adjusted as needed
 
     def attach_transaction_to_dag(self, transaction):
         """
@@ -34,6 +35,34 @@ class Ledger:
         # Update the approval graph
         for tip in tips:
             self.approval_graph[tip].add(transaction.transaction_id)
+
+    def is_transaction_confirmed(self, transaction_id):
+        """
+        Checks if the transaction is confirmed based on the number of subsequent transactions referencing it.
+        """
+        if transaction_id in self.confirmed_transactions:
+            return True
+        subsequent_transactions = self.get_subsequent_transactions(transaction_id)
+        if len(subsequent_transactions) >= self.confirmation_threshold:
+            self.confirmed_transactions.add(transaction_id)
+            if transaction_id in self.pending_transactions:
+                self.pending_transactions.remove(transaction_id)
+            return True
+        return False
+
+    def get_subsequent_transactions(self, transaction_id):
+        """
+        Retrieves all subsequent transactions that reference the given transaction_id directly or indirectly.
+        """
+        subsequent_transactions = set()
+        transactions_to_process = [transaction_id]
+        while transactions_to_process:
+            current_id = transactions_to_process.pop()
+            for subsequent_id in self.approval_graph.get(current_id, []):
+                if subsequent_id not in subsequent_transactions:
+                    subsequent_transactions.add(subsequent_id)
+                    transactions_to_process.append(subsequent_id)
+        return subsequent_transactions
 
     def verify_tips(self, tips):
         """
@@ -92,8 +121,12 @@ class Ledger:
         # Update balances and transaction status
         if self.can_update_balances(transaction):
             self.update_balances(transaction)
-            self.pending_transactions.remove(transaction_id)
-            self.confirmed_transactions.add(transaction_id)
+            if self.is_transaction_confirmed(transaction_id):
+                self.update_balances(transaction)
+                return True
+            else:
+                self.logger.warning(f"Transaction {transaction_id} does not have enough confirmations yet.")
+                return False
             return True
         else:
             self.logger.warning(f"Insufficient funds to confirm transaction {transaction_id}.")
