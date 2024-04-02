@@ -14,7 +14,7 @@ file_handler.setFormatter(formatter)
 main_logger.addHandler(file_handler)
 
 class Ledger:
-    def __init__(self):
+    def __init__(self, pulse_consensus_mechanism_params, fernet_key):
         self.logger = main_logger
         self.transactions = {}
         self.confirmed_transactions = set()
