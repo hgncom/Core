@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from flask import make_response
 from models import UserModel, WalletModel
+from models.user import UserModel
+from models import WalletModel
 import uuid, logging
 from network.server import PeerNetwork
 from models.transaction import TransactionModel
