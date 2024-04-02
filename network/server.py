@@ -21,7 +21,6 @@ class PeerNetwork:
         self.peers = set()  # A set of peer URLs
         self.bootstrap_peers = {'http://bootstrap1.example.com', 'http://bootstrap2.example.com'}  # Replace with actual bootstrap peer URLs
         self.known_peers = set()  # A set to keep track of all known peers
-        self.known_peers = set()  # A set to keep track of all known peers
         self.lock = threading.Lock()  # To ensure thread-safe operations on peers
         self.last_successful_ping = time.time()
 
@@ -32,9 +31,6 @@ class PeerNetwork:
 
     def broadcast_transaction(self, transaction_data):
         self.logger.info(f"Broadcasting transaction {transaction_data.get('transaction_id')} to peers")
-        # Share known peers with each peer
-        self.share_known_peers()
-
         for peer in self.peers:
             try:
                 response = requests.post(f"{peer}/submit-transaction", json=transaction_data)
@@ -42,7 +38,6 @@ class PeerNetwork:
                     print(f"Transaction broadcasted to {peer}")
                 else:
                     print(f"Failed to broadcast transaction to {peer}")
-                self.logger.error(f"Failed to broadcast transaction to {peer}: {response.status_code}")
             except requests.exceptions.RequestException as e:
                 print(f"Network error when broadcasting to {peer}: {e}")
                 self.logger.error(f"Network error when broadcasting to {peer}: {e}")
@@ -56,43 +51,6 @@ class PeerNetwork:
                 requests.post(f"{peer}/discover-peers", json={'peers': list(self.known_peers)})
             except requests.exceptions.RequestException as e:
                 print(f"Network error when sharing peers with {peer}: {e}")
-
-        # Share known peers with each peer
-        self.share_known_peers()
-
-        for peer in self.peers:
-            try:
-                response = requests.post(f"{peer}/submit-transaction", json=transaction_data)
-                if response.status_code == 200:
-                    print(f"Transaction broadcasted to {peer}")
-                else:
-                    print(f"Failed to broadcast transaction to {peer}")
-                self.logger.error(f"Failed to broadcast transaction to {peer}: {response.status_code}")
-            except requests.exceptions.RequestException as e:
-                print(f"Network error when broadcasting to {peer}: {e}")
-                self.logger.error(f"Network error when broadcasting to {peer}: {e}")
-
-    def share_known_peers(self):
-        """
-        Share the list of known peers with all connected peers.
-        """
-        for peer in self.peers:
-            try:
-                requests.post(f"{peer}/discover-peers", json={'peers': list(self.known_peers)})
-            except requests.exceptions.RequestException as e:
-                print(f"Network error when sharing peers with {peer}: {e}")
-
-        for peer in self.peers:
-            try:
-                response = requests.post(f"{peer}/submit-transaction", json=transaction_data)
-                if response.status_code == 200:
-                    print(f"Transaction broadcasted to {peer}")
-                else:
-                    print(f"Failed to broadcast transaction to {peer}")
-                self.logger.error(f"Failed to broadcast transaction to {peer}: {response.status_code}")
-            except requests.exceptions.RequestException as e:
-                print(f"Network error when broadcasting to {peer}: {e}")
-                self.logger.error(f"Network error when broadcasting to {peer}: {e}")
 
     def propagate_transaction(self, transaction_data):
         self.logger.info(f"Propagating transaction {transaction_data.get('transaction_id')} to peers")
@@ -103,7 +61,6 @@ class PeerNetwork:
                     print(f"Transaction propagated to {peer}")
                 else:
                     print(f"Failed to propagate transaction to {peer}")
-                    self.logger.error(f"Failed to propagate transaction to {peer}: {response.status_code}")
             except requests.exceptions.RequestException as e:
                 print(f"Network error when propagating to {peer}: {e}")
                 self.logger.error(f"Network error when propagating to {peer}: {e}")
@@ -217,13 +174,6 @@ def discover_peers():
                     print(f"Failed to reconnect to bootstrap peer {bootstrap_peer}: {e}")
             else:
                 print("Failed to reconnect to any bootstrap peers. Will retry.")
-
-        # Schedule the next check
-        threading.Timer(60, self.check_network_partition).start()
-
-
-        # Start the network partition check
-        self.check_network_partition()
 
 
 
