@@ -121,17 +121,20 @@ class WalletPlugin(WalletInterface):
         """
         main_logger.info(f"Attempting to fetch wallet data for username: {username}")
         try:
-            wallet = WalletModel.query.join(UserModel).filter(UserModel.username == username).first()
-            if wallet:
-                main_logger.info(f"Wallet data found for username: {username}")
-                return {
-                    "address": wallet.wallet_address,
-                    "public_key": wallet.public_key,
-                    "amount": wallet.amount
-                }
-            else:
-                main_logger.warning(f"No wallet associated with username: {username}")
+            user = UserModel.query.filter_by(username=username).first()
+            if not user:
+                main_logger.warning(f"User {username} not found.")
+                return {"error": "User not found."}
+            wallet = WalletModel.query.filter_by(user_id=user.id).first()
+            if not wallet:
+                main_logger.warning(f"Wallet not found for user: {username}")
                 return {"error": "Wallet not found."}
+            main_logger.info(f"Wallet data found for user: {username}")
+            return {
+                "address": wallet.wallet_address,
+                "public_key": wallet.public_key,
+                "amount": wallet.amount
+            }
         except Exception as e:
             main_logger.error(f"Error fetching wallet data for username: {username}: {e}")
             return None
