@@ -56,13 +56,17 @@ class WalletPlugin(WalletInterface):
     def send_funds_to_address(self, sender_username, recipient_address, amount, private_key):
         sender_user = UserModel.query.filter_by(username=sender_username).first()
         if not sender_user or not sender_user.wallet:
+            main_logger.error(f"send_funds_to_address: Sender user {sender_username} or wallet not found.")
             return False, "Sender user or wallet not found."
+        main_logger.info(f"send_funds_to_address: Sender {sender_username} initiating a transaction to {recipient_address} for amount {amount}.")
         main_logger.info(f"Sender {sender_username} initiating a transaction to {recipient_address} for amount {amount}.")
         if sender_user.wallet.amount < amount:
+            main_logger.error(f"send_funds_to_address: Insufficient funds for sender {sender_username}.")
             self.logger.error("Insufficient funds.")
             return False, "Insufficient funds."
         recipient_wallet = WalletModel.query.filter_by(wallet_address=recipient_address).first()
         if not recipient_wallet:
+            main_logger.error(f"send_funds_to_address: Recipient wallet {recipient_address} not found.")
             return False, "Recipient wallet not found."
 
         # Create a new transaction
@@ -72,10 +76,12 @@ class WalletPlugin(WalletInterface):
             amount=amount,
             signature=''  # Placeholder for the actual signature
         )
+        main_logger.info(f"send_funds_to_address: Transaction created for {sender_username} to {recipient_address} for amount {amount}.")
         main_logger.info(f"Transaction created for {sender_username} to {recipient_address} for amount {amount}.")
         # Sign the transaction with the sender's private key (retrieved securely)
         signature = self.sign_transaction(transaction, private_key)
         transaction.signature = signature
+        main_logger.info(f"send_funds_to_address: Transaction signed with signature {signature}.")
         main_logger.info(f"Transaction signed with signature {signature}.")
 
         # Propagate the transaction to the network and add to the ledger
@@ -91,15 +97,20 @@ class WalletPlugin(WalletInterface):
         transaction_data['signature'] = signature
         try:
             self.peer_network.broadcast_transaction(transaction_data)
+            main_logger.info(f"send_funds_to_address: Transaction {transaction.transaction_id} broadcasted to peers.")
             main_logger.info(f"Transaction {transaction.transaction_id} broadcasted to peers.")
             # Add transaction to ledger and update sender's balance
             if self.ledger.add_transaction(transaction):
+                main_logger.info(f"send_funds_to_address: Transaction {transaction.transaction_id} added to ledger, awaiting confirmation.")
                 main_logger.info(f"Transaction {transaction.transaction_id} added to ledger, awaiting confirmation.")
                 return True, "Transaction sent and awaiting confirmation."
             else:
+                main_logger.error(f"send_funds_to_address: Transaction {transaction.transaction_id} could not be added to ledger.")
+                main_logger.error(f"Transaction {transaction.transaction_id} could not be added to the ledger.")
                 main_logger.error(f"Transaction {transaction.transaction_id} could not be added to ledger.")
                 return False, "Transaction failed to be added to the ledger."
         except Exception as e:
+            main_logger.error(f"send_funds_to_address: Error during sending funds: {e}")
             main_logger.error(f"Error during sending funds: {e}")
             return False, "An error occurred during the sending process."
 
@@ -336,4 +347,3 @@ class WalletPlugin(WalletInterface):
             main_logger.info(f"Transaction {transaction_id} confirmed and balances updated.")
         else:
             main_logger.error(f"Failed to update wallets for transaction {transaction_id}.")
-
