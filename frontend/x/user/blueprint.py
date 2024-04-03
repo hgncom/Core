@@ -37,8 +37,11 @@ def register():
                     wallet_details, private_key_pem = wallet_plugin.create_wallet(username)
                     main_logger.info(f"Wallet created for user: {username}")
 
-                    associate_wallet_with_user(username, wallet_details)
-                    main_logger.info(f"Wallet associated with user: {username}")
+                    wallet_association_result = associate_wallet_with_user(username, wallet_details)
+                    if wallet_association_result.get("success"):
+                        main_logger.info(f"Wallet associated with user: {username}")
+                    else:
+                        flash("Failed to associate wallet with user.", 'error')
                     session['private_key'] = private_key_pem
                     flash("Registration successful. Please note your private key.", 'success')
                 elif registration_result.get("user_exists"):

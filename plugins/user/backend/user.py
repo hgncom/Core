@@ -30,6 +30,7 @@ def associate_wallet_with_user(username, wallet_details):
         if 'public_key' not in wallet_details or 'address' not in wallet_details:
             logger.error(f"Invalid wallet details provided for user: {username}")
             return {"error": "Invalid wallet details."}
+        # Check for existing wallet address to ensure uniqueness
 
         # Check for existing wallet address to ensure uniqueness
         # Ensure that the wallet is not already associated with another user
@@ -43,6 +44,7 @@ def associate_wallet_with_user(username, wallet_details):
         user_wallet = WalletModel(user_id=user.id, wallet_address=wallet_details['address'], public_key=public_key_pem)
         db.session.add(user_wallet)
         db.session.commit()
+        return {"success": True}
 
         logger.info(f"Wallet successfully associated with user: {username}")
         return {"success": True}
