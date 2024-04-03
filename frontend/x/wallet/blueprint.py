@@ -2,11 +2,13 @@ import uuid
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from flask import make_response
 from flask import current_app
+from flask import has_app_context
 from models import UserModel, WalletModel, db
 from models.transaction import TransactionModel
 
 def get_wallet_plugin():
-    with current_app.app_context():
+    if not has_app_context():
+        raise RuntimeError("Attempting to get WalletPlugin without an application context.")
         from plugins.wallet.backend.wallet import WalletPlugin
         return WalletPlugin()
 
@@ -23,6 +25,8 @@ def dashboard():
     main_logger.info(f"Dashboard accessed by user: {username}")
 
     # Create an instance of WalletPlugin within the application context
+    if 'NODE_URL' not in current_app.config:
+        current_app.config['NODE_URL'] = 'http://default-node-url.com'  # Set a default NODE_URL or ensure it is configured
     wallet_plugin = get_wallet_plugin()
 
     # Redirect to login if user is not logged in
