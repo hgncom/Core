@@ -71,22 +71,22 @@ class PeerNetwork:
             except requests.exceptions.RequestException as e:
                 self.logger.error(f"Network error when propagating to {peer}: {e}")
 
-     def heartbeat(self):
-        """
-        Periodically checks peer availability, removing unresponsive ones.
-        """
-        while True:
-            with self.lock:
-                for peer in list(self.peers):
-                    try:
-                        response = requests.get(f"{peer}/ping")
-                        if response.status_code != 200:
-                            self.peers.remove(peer)
-                            main_logger.info(f"Unresponsive peer removed: {peer}")
-                    except requests.exceptions.RequestException:
-                        self.peers.remove(peer)
-                        main_logger.error(f"Network error on ping: {peer}")
-            time.sleep(30)
+      def heartbeat(self):
+         """
+         Periodically checks peer availability, removing unresponsive ones.
+         """
+         while True:
+             with self.lock:
+                 for peer in list(self.peers):
+                     try:
+                         response = requests.get(f"{peer}/ping")
+                         if response.status_code != 200:
+                             self.peers.remove(peer)
+                             main_logger.info(f"Unresponsive peer removed: {peer}")
+                     except requests.exceptions.RequestException:
+                         self.peers.remove(peer)
+                         main_logger.error(f"Network error on ping: {peer}")
+             time.sleep(30)
 
 if __name__ == '__main__':
     # Set Flask to run in production mode.
