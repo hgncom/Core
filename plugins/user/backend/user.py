@@ -32,10 +32,11 @@ def associate_wallet_with_user(username, wallet_details):
             return {"error": "Invalid wallet details."}
 
         # Check for existing wallet address to ensure uniqueness
-        existing_wallet = WalletModel.query.filter_by(wallet_address=wallet_details['address']).first()
-        if existing_wallet:
-            logger.error(f"Wallet address already exists: {wallet_details['address']}")
-            return {"error": "Wallet address already exists."}
+        # Ensure that the wallet is not already associated with another user
+        existing_wallet_user = WalletModel.query.filter_by(wallet_address=wallet_details['address']).first()
+        if existing_wallet_user and existing_wallet_user.user_id != user.id:
+            logger.error(f"Wallet address {wallet_details['address']} is already associated with a different user.")
+            return {"error": "Wallet address is already associated with a different user."}
 
         # Create and associate wallet with user
         public_key_pem = wallet_details['public_key']
