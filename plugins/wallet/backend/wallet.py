@@ -172,8 +172,8 @@ class WalletPlugin(WalletInterface):
 
         main_logger.debug(f"Private key PEM before encoding: {private_key_pem}")
         # Encode the private key to base64
-        private_key_base64 = base64.b64encode(private_key_pem.encode('utf-8')).decode('utf-8')
-        main_logger.debug(f"Private key encoded to base64: {private_key_base64}")
+        # The private_key_base64 encoding is not necessary for the wallet details
+        # main_logger.debug(f"Private key encoded to base64: {private_key_base64}")
 
         address = self._generate_address(public_key)
         new_wallet = WalletModel(user_id=user.id, wallet_address=address, public_key=public_key_pem)
@@ -181,7 +181,7 @@ class WalletPlugin(WalletInterface):
         db.session.commit()
 
         # Return the public key, address, and private key to the caller
-        return {"public_key": public_key_pem, "address": address}, private_key_pem
+        return {"public_key": public_key_pem, "address": address, "private_key": private_key_pem}, private_key_pem
 
 
 
