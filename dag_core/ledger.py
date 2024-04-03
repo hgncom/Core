@@ -18,8 +18,8 @@ main_logger.addHandler(file_handler)
 
 class Ledger:
     def __init__(self, fernet_key, network_communication):
-        self.logger.info("Ledger initialized with network communication and consensus mechanism.")
         self.logger = main_logger
+        self.logger.info("Ledger initialized with network communication and consensus mechanism.")
         self.transactions = {}
         self.confirmed_transactions = set()
         self.pending_transactions = set()
