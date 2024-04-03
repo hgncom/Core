@@ -31,7 +31,6 @@ def register():
 
             try:
                 registration_result = register_user(username, email, password)
-                registration_success = register_user(username, email, password)
 
                 if registration_result.get("success"):
                     wallet_plugin = WalletPlugin()
