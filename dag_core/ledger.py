@@ -147,8 +147,10 @@ class Ledger:
         return sender_public_key
 
     def confirm_transaction(self, transaction_id):
+        self.logger.info(f"Attempting to confirm transaction {transaction_id}.")
         transaction = self.transactions.get(transaction_id)
         if not transaction:
+            self.logger.warning(f"Transaction {transaction_id} not found in the ledger.")
             self.logger.warning(f"Transaction {transaction_id} not found.")
             return False
         if self.pulse_consensus.confirm_transaction(transaction):
@@ -165,8 +167,10 @@ class Ledger:
             else:
                 self.logger.error(f"Failed to update wallets for transaction {transaction_id}.")
             self.logger.info(f"Transaction {transaction_id} confirmed.")
+            self.logger.info(f"Transaction {transaction_id} confirmed and wallets updated.")
             return True
         else:
+            self.logger.warning(f"Transaction {transaction_id} could not be confirmed by consensus.")
             self.logger.warning(f"Transaction {transaction_id} could not be confirmed.")
             return False
 
