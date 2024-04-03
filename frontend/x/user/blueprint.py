@@ -25,14 +25,30 @@ def register():
         if not username or not email or not password:
             main_logger.warning("Attempted registration with incomplete form data.")
             flash("Please fill out all fields.", 'error')
-            return render_template('register.html')
+            # Clear the registration_in_progress flag after the registration process is complete
+       session.pop('registration_in_progress', None)
+
+       return render_template('register.html')
 
         main_logger.info(f"Attempting to register user: {username}")
+
+       # Prevent multiple form submissions by checking if the user is already being processed
+       if session.get('registration_in_progress'):
+           flash('Registration is already in progress. Please wait.', 'info')
+           # Clear the registration_in_progress flag after the registration process is complete
+       session.pop('registration_in_progress', None)
+
+       return render_template('register.html')
+       else:
+           session['registration_in_progress'] = True
 
     try:
         if request.method != 'POST':
             # If it's not a POST request, just render the registration template
-            return render_template('register.html')
+            # Clear the registration_in_progress flag after the registration process is complete
+       session.pop('registration_in_progress', None)
+
+       return render_template('register.html')
 
         registration_success = register_user(username, email, password)
 
