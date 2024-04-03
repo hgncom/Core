@@ -25,10 +25,11 @@ class WalletPlugin(WalletInterface):
     def __init__(self):
         # Retrieve the Fernet key from the app's configuration
         self.fernet_key = current_app.config['FERNET_KEY']
+        self.fernet_key = current_app.config['FERNET_KEY']
         # Initialize the Ledger with the necessary configuration
         self.network_communication = NetworkCommunication(node_url=current_app.config['NODE_URL'])  # Use the node URL from the app's configuration
         self.ledger = Ledger(fernet_key=self.fernet_key, network_communication=self.network_communication)
-        self.ledger = Ledger(fernet_key=fernet_key, network_communication=self.network_communication)
+        self.ledger = Ledger(fernet_key=self.fernet_key, network_communication=self.network_communication)
         # Initialize other necessary components like the peer network
         self.peer_network = PeerNetwork() # Assuming PeerNetwork is implemented in the network module
         # Ensures that the logger is configured for the class
