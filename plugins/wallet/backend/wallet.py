@@ -6,6 +6,7 @@ from cryptography.hazmat.backends import default_backend
 from network.server import PeerNetwork
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+import base64
 from .wallet_interface import WalletInterface
 from network.pulse.networking import NetworkCommunication
 from models import UserModel, WalletModel, db

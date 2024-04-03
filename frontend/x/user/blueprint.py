@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from plugins.user.backend.user import register_user, associate_wallet_with_user
 from plugins.wallet.backend.wallet import WalletPlugin
 from utilities.logging import create_main_logger
+from plugins.user.backend.auth import authenticate_user
 
 main_logger = create_main_logger()
 
