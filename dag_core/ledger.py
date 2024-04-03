@@ -3,6 +3,8 @@ from network.pulse.mechanism import PulseConsensusMechanism
 from collections import defaultdict
 import random
 import logging
+import threading
+from time import sleep
 from flask import current_app
 from cryptography.fernet import Fernet
 
@@ -29,6 +31,31 @@ class Ledger:
         # Initialize PulseConsensusMechanism with the Fernet key
         self.pulse_consensus = PulseConsensusMechanism(ledger_interaction=self, network_communication=network_communication, encryption_key=fernet_key)
         self.shard_manager = ShardManager(num_shards=10)
+        # Start the background task to check pending transactions
+        self.start_background_task()
+
+    def start_background_task(self):
+        """
+        Starts a background task that periodically checks for transaction confirmations.
+        """
+        def background_task():
+            while True:
+                self.check_pending_transactions()
+                sleep(60)  # Wait for 60 seconds before checking again
+
+        # Run the background task in a separate thread
+        threading.Thread(target=background_task, daemon=True).start()
+
+    def check_pending_transactions(self):
+        """
+        Checks the status of pending transactions and updates the database accordingly.
+        """
+        for transaction_id in list(self.pending_transactions):
+            if self.is_transaction_confirmed(transaction_id):
+                self.confirm_transaction(transaction_id)
+                self.logger.info(f"Transaction {transaction_id} confirmed and database updated.")
+
+    # Rest of the Ledger class remains unchanged...
         # self.shard_manager initialization will be handled elsewhere to avoid circular import
                 # self.shard_manager initialization will be handled elsewhere to avoid circular import
 
