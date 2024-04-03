@@ -74,15 +74,6 @@ def send():
                 return render_template('send.html')
 
             # Sign the transaction with the sender's private key
-            # Implement the signature process correctly based on your application's requirements
-            # This part of the code assumes you have a mechanism to sign transactions
-            if sender_wallet:
-                sender_private_key_pem = "TEST1"
-                #sender_private_key_pem = wallet_plugin.get_private_key_for_user(sender_wallet.user_id)
-            else:
-                flash('Wallet not found.', 'error')
-                return render_template('send.html')
-            # Assuming the `sign` method exists and works with the provided private key
             new_transaction.signature = wallet_plugin.sign_transaction(sender_private_key_pem, new_transaction)
 
             db.session.add(new_transaction)
