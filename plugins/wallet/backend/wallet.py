@@ -24,10 +24,10 @@ main_logger = create_main_logger()
 class WalletPlugin(WalletInterface):
     def __init__(self):
         # Retrieve the Fernet key from the app's configuration
-        fernet_key = 'aqg0ahE_7tGYt8KauLRLNyeEhSAOm0nehgIlcQ-zbkg='
+        fernet_key = current_app.config['FERNET_KEY']
         # Initialize the Ledger with the necessary configuration
         self.network_communication = NetworkCommunication(node_url="http://localhost:5000")  # Replace with actual node URL
-        self.ledger = Ledger(fernet_key=fernet_key, network_communication=self.network_communication)
+        self.ledger = Ledger(network_communication=self.network_communication)
         # Initialize other necessary components like the peer network
         self.peer_network = PeerNetwork() # Assuming PeerNetwork is implemented in the network module
         # Ensures that the logger is configured for the class
@@ -315,12 +315,14 @@ class WalletPlugin(WalletInterface):
         Adds a verified transaction to the ledger.
         """
         try:
-            ledger = Ledger()
-            ledger.add_transaction(transaction, transaction.sender)
-            return True
+            success = self.ledger.add_transaction(transaction)
+            if success:
+                return True, "Transaction added to ledger successfully."
+            else:
+                return False, "Failed to add transaction to ledger."
         except Exception as e:
             main_logger.error(f"Error adding transaction to ledger: {e}")
-            return False
+            return False, f"Error adding transaction to ledger: {e}"
 
     def verify_transaction_signature(self, transaction):
         """

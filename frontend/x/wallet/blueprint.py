@@ -85,6 +85,7 @@ def send():
             # Add the transaction to the database or ledger
             main_logger.debug(f"Attempting to add transaction to the ledger: {new_transaction.transaction_id}")
             success, message = wallet_plugin.add_transaction_to_ledger(new_transaction)
+            success, message = wallet_plugin.add_transaction_to_ledger(new_transaction)
             if not success:
                 main_logger.error(f"Failed to add transaction to ledger: {message}")
                 flash('Failed to send funds.', 'error')
