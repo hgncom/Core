@@ -178,7 +178,10 @@ class WalletPlugin(WalletInterface):
         """
         try:
             # Decode the PEM-encoded private key and convert it back into a private key object
-            private_key_bytes = base64.b64decode(private_key_pem)
+            # Ensure the private key is correctly padded to a multiple of 4
+            private_key_pem = private_key_pem.strip()
+            padding = '=' * ((4 - len(private_key_pem) % 4) % 4)
+            private_key_bytes = base64.b64decode(private_key_pem + padding)
             private_key = serialization.load_pem_private_key(
                 private_key_bytes,
                 password=None,  # Update accordingly if your private key is password-protected
