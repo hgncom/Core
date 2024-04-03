@@ -74,7 +74,7 @@ def register_user(username, email, password):
 
         user = UserModel(username=username, email=email)
         user.password = password  # This uses the @password.setter to hash the password
-        user.set_password(password)  # Ensure we are using the set_password method to hash the password
+        user.password_hash = generate_password_hash(password)  # Hash the password and set it directly
 
         db.session.add(user)
         db.session.flush()  # This is important to get the user ID
