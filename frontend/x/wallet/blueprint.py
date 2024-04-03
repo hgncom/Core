@@ -47,6 +47,7 @@ def send():
         recipient_address = request.form.get('recipient_address')
         amount = request.form.get('amount', type=float)
         main_logger.debug(f"Send funds form submitted with recipient_address: {recipient_address}, amount: {amount}")
+        main_logger.debug(f"Send funds form submitted with recipient_address: {recipient_address}, amount: {amount}")
 
         if not recipient_address or amount <= 0:
             flash('Invalid recipient address or amount', 'error')
@@ -79,14 +80,21 @@ def send():
             # Sign the transaction with the sender's private key
             new_transaction = wallet_plugin.sign_transaction(new_transaction, sender_private_key_pem)
             main_logger.debug(f"Transaction signed: {new_transaction.signature}")
+            main_logger.debug(f"Transaction signed: {new_transaction.signature}")
 
             # Add the transaction to the database or ledger
-            # ...
+            main_logger.debug(f"Attempting to add transaction to the ledger: {new_transaction.transaction_id}")
+            success, message = wallet_plugin.add_transaction_to_ledger(new_transaction)
+            if not success:
+                main_logger.error(f"Failed to add transaction to ledger: {message}")
+                flash('Failed to send funds.', 'error')
+                return render_template('send.html')
             main_logger.debug(f"Attempting to add transaction to the ledger: {new_transaction.transaction_id}")
 
-            main_logger.info(f"Transaction successfully processed.")
+            main_logger.info(f"Transaction {new_transaction.transaction_id} added to ledger successfully.")
             flash('Funds successfully sent.', 'success')
             return redirect(url_for('.dashboard'))
+
 
         except Exception as e:
             main_logger.exception(f"Exception occurred during transaction process: {e}")
