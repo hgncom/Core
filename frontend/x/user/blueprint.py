@@ -9,6 +9,14 @@ user_blueprint = Blueprint('user', __name__, template_folder='templates', static
 
 @user_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
+    # Log the request path and method
+    main_logger.info(f"Request path: {request.path}, Method: {request.method}")
+
+    # Initialize variables at the beginning
+    username = None
+    email = None
+    password = None
+
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -22,38 +30,29 @@ def register():
         main_logger.info(f"Attempting to register user: {username}")
 
     try:
+        if request.method != 'POST':
+            # If it's not a POST request, just render the registration template
+            return render_template('register.html')
+
         registration_success = register_user(username, email, password)
 
         if registration_success:
-            try:
-                wallet_plugin = WalletPlugin()
-                wallet_details, private_key_pem = wallet_plugin.create_wallet(username)
-                main_logger.info(f"Wallet created for user: {username}")
+            wallet_plugin = WalletPlugin()
+            wallet_details, private_key_pem = wallet_plugin.create_wallet(username)
+            main_logger.info(f"Wallet created for user: {username}")
 
-                # Debugging: Print or log the session data
-                main_logger.debug(f"Session after account creation: {session}")
+            main_logger.debug(f"Session after account creation: {session}")
 
-                try:
-                    associate_wallet_with_user(username, wallet_details)
-                    main_logger.info(f"Wallet associated with user: {username}")
-                    session['private_key'] = private_key_pem
-                    return redirect(url_for('user.show_private_key'))
-                except Exception as e:
-                    main_logger.error(f"Error associating wallet with user {username}: {e}")
-                    flash("Error during wallet association. Please contact support.", 'error')
-
-            except Exception as e:
-                main_logger.error(f"Error creating wallet for user {username}: {e}")
-                flash("Error during wallet creation. Please contact support.", 'error')
-
-        else:
-            main_logger.error(f"Registration failed for user: {username}")
-            flash("Registration failed. Please try again.", 'error')
+            associate_wallet_with_user(username, wallet_details)
+            main_logger.info(f"Wallet associated with user: {username}")
+            session['private_key'] = private_key_pem
+            # Commented out the redirect to isolate the cause
+            # return redirect(url_for('user.show_private_key'))
+            flash("Registration successful. Please note your private key.", 'success')
 
     except Exception as e:
         main_logger.error(f"Unexpected error during registration process for user {username}: {e}")
         flash("An unexpected error occurred. Please try again.", 'error')
-
 
     return render_template('register.html')
 
@@ -76,6 +75,9 @@ def show_private_key():
 
 @user_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
+    # Log the request path
+    main_logger.info(f"Request path: {request.path}, Method: {request.method}")
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
