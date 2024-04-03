@@ -68,10 +68,11 @@ def register_user(username, email, password):
         ).first()
         if existing_user:
             logger.error(f"User with given username or email already exists: {username}")
-            return {"error": "User already exists.", "user_exists": True}
+            return {"error": "User already exists.", "user_exists": True, "user_id": existing_user.id}
 
         user = UserModel(username=username, email=email)
         user.password = password  # This uses the @password.setter to hash the password
+        user.set_password(password)  # Ensure we are using the set_password method to hash the password
 
         db.session.add(user)
         db.session.flush()  # This is important to get the user ID
@@ -83,6 +84,7 @@ def register_user(username, email, password):
             db.session.rollback()
             return {"error": "Error creating wallet."}
 
+        logger.info(f"User {username} with ID {user.id} is being committed to the database.")
         db.session.commit()
         logger.info(f"User {username} registered successfully.")
         return {"success": True, "private_key": private_key_pem}
