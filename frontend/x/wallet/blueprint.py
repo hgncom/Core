@@ -14,12 +14,7 @@ wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', st
 from utilities.logging import create_main_logger
 from dag_core.node import Transaction
 
-wallet_plugin = WalletPlugin()
 main_logger = create_main_logger()
-
-# Instantiate WalletPlugin and Blueprint
-peer_network = PeerNetwork()
-wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', static_folder='static')
 
 @wallet_blueprint.route('/dashboard')
 def dashboard():
@@ -27,18 +22,12 @@ def dashboard():
     username = session.get('username')
     main_logger.info(f"Dashboard accessed by user: {username}")
 
-     # Create an instance of WalletPlugin within the application context
-     wallet_plugin = get_wallet_plugin()
+    # Create an instance of WalletPlugin within the application context
+    wallet_plugin = get_wallet_plugin()
 
-      # Create an instance of WalletPlugin within the application context
-      wallet_plugin = get_wallet_plugin()
-
-       # Create an instance of WalletPlugin within the application context
-       wallet_plugin = get_wallet_plugin()
-
-       # Redirect to login if user is not logged in
-       if not username:
-           return redirect(url_for('user.login'))
+    # Redirect to login if user is not logged in
+    if not username:
+        return redirect(url_for('user.login'))
 
        try:
            # Fetch wallet data for the user
@@ -54,12 +43,6 @@ def dashboard():
    def send():
        if 'username' not in session:
            return redirect(url_for('user.login'))
-
-    # Create an instance of WalletPlugin within the application context
-    wallet_plugin = get_wallet_plugin()
-
-    # Create an instance of WalletPlugin within the application context
-    wallet_plugin = get_wallet_plugin()
 
     # Create an instance of WalletPlugin within the application context
     wallet_plugin = get_wallet_plugin()
