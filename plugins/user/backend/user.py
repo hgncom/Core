@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import UserModel, WalletModel, db
 from plugins.wallet.backend.wallet import WalletPlugin
 from utilities.logging import create_main_logger
+from sqlalchemy.exc import IntegrityError
 
 main_logger = create_main_logger()
 
@@ -19,15 +20,24 @@ def associate_wallet_with_user(username, wallet_details):
     logger.info(f"Attempting to associate wallet with user: {username}")
 
     try:
+        # Check if user exists
         user = UserModel.query.filter_by(username=username).first()
         if not user:
             logger.error(f"Attempt to associate wallet with non-existent user: {username}")
             return {"error": "User does not exist."}
 
+        # Validate wallet details
         if 'public_key' not in wallet_details or 'address' not in wallet_details:
             logger.error(f"Invalid wallet details provided for user: {username}")
             return {"error": "Invalid wallet details."}
 
+        # Check for existing wallet address to ensure uniqueness
+        existing_wallet = WalletModel.query.filter_by(wallet_address=wallet_details['address']).first()
+        if existing_wallet:
+            logger.error(f"Wallet address already exists: {wallet_details['address']}")
+            return {"error": "Wallet address already exists."}
+
+        # Create and associate wallet with user
         public_key_pem = wallet_details['public_key']
         user_wallet = WalletModel(user_id=user.id, wallet_address=wallet_details['address'], public_key=public_key_pem)
         db.session.add(user_wallet)
@@ -39,6 +49,7 @@ def associate_wallet_with_user(username, wallet_details):
         db.session.rollback()
         logger.error(f"Error associating wallet with user {username}: {e}", exc_info=True)
         return {"error": "An error occurred during wallet association."}
+
 
 
 def register_user(username, email, password):
@@ -56,7 +67,7 @@ def register_user(username, email, password):
             return {"error": "User already exists."}
 
         user = UserModel(username=username, email=email)
-        user.set_password(password)  # This ensures the password is hashed
+        user.password = password  # This uses the @password.setter to hash the password
 
         db.session.add(user)
         db.session.flush()  # This is important to get the user ID
