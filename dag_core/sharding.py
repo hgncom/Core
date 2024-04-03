@@ -1,6 +1,5 @@
 import hashlib
 import threading
-class ShardManager:
 from network.pulse.mechanism import PulseConsensusMechanism
 
 class ShardManager:

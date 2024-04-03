@@ -9,7 +9,7 @@ from cryptography.fernet import Fernet
 # Configure logging
 main_logger = logging.getLogger('Ledger')
 main_logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('ledger.log')
+file_handler = logging.FileHandler('main.log')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 main_logger.addHandler(file_handler)

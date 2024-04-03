@@ -2,7 +2,9 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import UserModel, WalletModel, db
 from plugins.wallet.backend.wallet import WalletPlugin
-import logging
+from utilities.logging import create_main_logger
+
+main_logger = create_main_logger()
 
 class User(db.Model):
 
@@ -13,81 +15,70 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
 def associate_wallet_with_user(username, wallet_details):
-    """
-    Associates wallet details with a user account, with validation, error handling, and debugging.
-    """
+    logger = main_logger
+    logger.info(f"Attempting to associate wallet with user: {username}")
+
     try:
-        # Validate user existence
         user = UserModel.query.filter_by(username=username).first()
         if not user:
-            logging.error("Attempt to associate wallet with non-existent user: %s", username)
+            logger.error(f"Attempt to associate wallet with non-existent user: {username}")
             return {"error": "User does not exist."}
 
-        # Data validation for wallet_details could be more comprehensive depending on requirements
         if 'public_key' not in wallet_details or 'address' not in wallet_details:
-            logging.error("Invalid wallet details provided for user: %s", username)
+            logger.error(f"Invalid wallet details provided for user: {username}")
             return {"error": "Invalid wallet details."}
 
-        public_key_pem = wallet_details['public_key'].public_bytes(
-            encoding=Encoding.PEM, format=PublicFormat.SubjectPublicKeyInfo
-        ).decode('utf-8')
-
+        public_key_pem = wallet_details['public_key']
         user_wallet = WalletModel(user_id=user.id, wallet_address=wallet_details['address'], public_key=public_key_pem)
-
         db.session.add(user_wallet)
         db.session.commit()
 
-        logging.info("Successfully associated wallet with user: %s", username)
+        logger.info(f"Wallet successfully associated with user: {username}")
         return {"success": True}
-
     except Exception as e:
         db.session.rollback()
-        logging.error("Error associating wallet with user %s: %s", username, str(e))
+        logger.error(f"Error associating wallet with user {username}: {e}", exc_info=True)
         return {"error": "An error occurred during wallet association."}
 
+
 def register_user(username, email, password):
-    """
-    Registers a new user with validation, error handling, and debugging.
-    """
+    logger = main_logger
+    logger.info(f"Starting registration for username: {username}")
+
     try:
-        # Input data validation (simplified example, consider more comprehensive checks)
         if not username or not email or not password:
-            logging.error("Invalid registration data provided.")
+            logger.error("Invalid registration data provided.")
             return {"error": "Invalid registration data."}
 
-        # Check for existing user
         existing_user = UserModel.query.filter((UserModel.username == username) | (UserModel.email == email)).first()
         if existing_user:
-            logging.error("User with given username or email already exists: %s", username)
+            logger.error(f"User with given username or email already exists: {username}")
             return {"error": "User already exists."}
 
         user = UserModel(username=username, email=email)
-        user.password = password  # Assumes a password setter exists that handles hashing
+        user.set_password(password)  # This ensures the password is hashed
 
         db.session.add(user)
-        db.session.flush()  # Flush to assign an ID to the user before committing
+        db.session.flush()  # This is important to get the user ID
 
-        # Create a new wallet for the user
         wallet_plugin = WalletPlugin()
-        wallet_details = wallet_plugin.create_wallet(username)
+        wallet_details, private_key_pem = wallet_plugin.create_wallet(username)
         if 'error' in wallet_details:
-            logging.error("Error creating wallet for user: %s", username)
+            logger.error(f"Error creating wallet for user: {username}")
             db.session.rollback()
             return {"error": "Error creating wallet."}
 
-        # Associate the wallet with the user
-        wallet_association_result = associate_wallet_with_user(username, wallet_details)
-        if 'error' in wallet_association_result:
-            logging.error("Error associating wallet with user: %s", username)
+        wallet_association = associate_wallet_with_user(username, wallet_details)
+        if 'error' in wallet_association:
+            logger.error(f"Error associating wallet with user: {username}")
             db.session.rollback()
             return {"error": "Error associating wallet with user."}
 
         db.session.commit()
-
-        logging.info("User registered successfully: %s", username)
-        return {"success": True}
-
+        logger.info(f"User {username} registered successfully.")
+        return {"success": True, "private_key": private_key_pem}
     except Exception as e:
         db.session.rollback()
-        logging.error("Error during user registration for %s: %s", username, str(e))
+        logger.error(f"Error during user registration for {username}: {e}", exc_info=True)
         return {"error": "An error occurred during registration."}
+

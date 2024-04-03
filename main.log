@@ -1,0 +1,97 @@
+2024-04-03 01:48:24,786 - main_logger - INFO - Attempting to register user: test23
+2024-04-03 01:48:24,786 - main_logger - INFO - Attempting to register user: test23
+2024-04-03 01:48:24,786 - main_logger - INFO - Attempting to register user: test23
+2024-04-03 01:48:24,787 - main_logger - ERROR - Unexpected error during registration process for user test23: name 'logging' is not defined
+2024-04-03 01:48:24,787 - main_logger - ERROR - Unexpected error during registration process for user test23: name 'logging' is not defined
+2024-04-03 01:48:24,787 - main_logger - ERROR - Unexpected error during registration process for user test23: name 'logging' is not defined
+2024-04-03 01:52:14,445 - main_logger - INFO - Rendering login page.
+2024-04-03 01:52:14,445 - main_logger - INFO - Rendering login page.
+2024-04-03 01:52:14,445 - main_logger - INFO - Rendering login page.
+2024-04-03 01:52:19,042 - main_logger - INFO - Login attempt for username: test16
+2024-04-03 01:52:19,042 - main_logger - INFO - Login attempt for username: test16
+2024-04-03 01:52:19,042 - main_logger - INFO - Login attempt for username: test16
+2024-04-03 01:52:19,043 - main_logger - ERROR - Exception occurred during login for username test16: name 'authenticate_user' is not defined
+2024-04-03 01:52:19,043 - main_logger - ERROR - Exception occurred during login for username test16: name 'authenticate_user' is not defined
+2024-04-03 01:52:19,043 - main_logger - ERROR - Exception occurred during login for username test16: name 'authenticate_user' is not defined
+2024-04-03 01:52:44,605 - main_logger - INFO - Attempting to register user: tr
+2024-04-03 01:52:44,605 - main_logger - INFO - Attempting to register user: tr
+2024-04-03 01:52:44,605 - main_logger - INFO - Attempting to register user: tr
+2024-04-03 01:52:44,605 - main_logger - ERROR - Unexpected error during registration process for user tr: name 'logging' is not defined
+2024-04-03 01:52:44,605 - main_logger - ERROR - Unexpected error during registration process for user tr: name 'logging' is not defined
+2024-04-03 01:52:44,605 - main_logger - ERROR - Unexpected error during registration process for user tr: name 'logging' is not defined
+2024-04-03 01:53:54,380 - main_logger - INFO - Attempting to register user: er - [blueprint.py:22 - register()]
+2024-04-03 01:53:54,380 - main_logger - INFO - Attempting to register user: er - [blueprint.py:22 - register()]
+2024-04-03 01:53:54,380 - main_logger - INFO - Attempting to register user: er - [blueprint.py:22 - register()]
+2024-04-03 01:53:54,380 - main_logger - INFO - Attempting to register user: er - [blueprint.py:22 - register()]
+2024-04-03 01:53:54,380 - main_logger - ERROR - Unexpected error during registration process for user er: 'Logger' object has no attribute 'getLogger' - [blueprint.py:51 - register()]
+2024-04-03 01:53:54,380 - main_logger - ERROR - Unexpected error during registration process for user er: 'Logger' object has no attribute 'getLogger' - [blueprint.py:51 - register()]
+2024-04-03 01:53:54,380 - main_logger - ERROR - Unexpected error during registration process for user er: 'Logger' object has no attribute 'getLogger' - [blueprint.py:51 - register()]
+2024-04-03 01:53:54,380 - main_logger - ERROR - Unexpected error during registration process for user er: 'Logger' object has no attribute 'getLogger' - [blueprint.py:51 - register()]
+2024-04-03 01:58:10,286 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: fddf
+2024-04-03 01:58:10,286 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: fddf
+2024-04-03 01:58:10,286 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: fddf
+2024-04-03 01:58:10,286 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: fddf
+2024-04-03 01:58:10,287 - main_logger - ERROR - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:51 - register()] - Unexpected error during registration process for user fddf: 'Logger' object has no attribute 'getLogger'
+2024-04-03 01:58:10,287 - main_logger - ERROR - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:51 - register()] - Unexpected error during registration process for user fddf: 'Logger' object has no attribute 'getLogger'
+2024-04-03 01:58:10,287 - main_logger - ERROR - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:51 - register()] - Unexpected error during registration process for user fddf: 'Logger' object has no attribute 'getLogger'
+2024-04-03 01:58:10,287 - main_logger - ERROR - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:51 - register()] - Unexpected error during registration process for user fddf: 'Logger' object has no attribute 'getLogger'
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: test
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: test
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: test
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:22 - register()] - Attempting to register user: test
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:46 - register_user()] - Starting registration for username: test
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:46 - register_user()] - Starting registration for username: test
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:46 - register_user()] - Starting registration for username: test
+2024-04-03 02:06:20,361 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:46 - register_user()] - Starting registration for username: test
+2024-04-03 02:06:20,375 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:82 - register_user()] - Error during user registration for test: 'UserModel' object has no attribute 'set_password'
+Traceback (most recent call last):
+  File "C:\Users\johan\HGN2\src\plugins\user\backend\user.py", line 59, in register_user
+    user.set_password(password)  # This ensures the password is hashed
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'UserModel' object has no attribute 'set_password'. Did you mean: 'verify_password'?
+2024-04-03 02:06:20,375 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:82 - register_user()] - Error during user registration for test: 'UserModel' object has no attribute 'set_password'
+Traceback (most recent call last):
+  File "C:\Users\johan\HGN2\src\plugins\user\backend\user.py", line 59, in register_user
+    user.set_password(password)  # This ensures the password is hashed
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'UserModel' object has no attribute 'set_password'. Did you mean: 'verify_password'?
+2024-04-03 02:06:20,375 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:82 - register_user()] - Error during user registration for test: 'UserModel' object has no attribute 'set_password'
+Traceback (most recent call last):
+  File "C:\Users\johan\HGN2\src\plugins\user\backend\user.py", line 59, in register_user
+    user.set_password(password)  # This ensures the password is hashed
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'UserModel' object has no attribute 'set_password'. Did you mean: 'verify_password'?
+2024-04-03 02:06:20,375 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:82 - register_user()] - Error during user registration for test: 'UserModel' object has no attribute 'set_password'
+Traceback (most recent call last):
+  File "C:\Users\johan\HGN2\src\plugins\user\backend\user.py", line 59, in register_user
+    user.set_password(password)  # This ensures the password is hashed
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'UserModel' object has no attribute 'set_password'. Did you mean: 'verify_password'?
+2024-04-03 02:06:20,379 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:31 - register()] - Wallet created for user: test
+2024-04-03 02:06:20,379 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:31 - register()] - Wallet created for user: test
+2024-04-03 02:06:20,379 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:31 - register()] - Wallet created for user: test
+2024-04-03 02:06:20,379 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:31 - register()] - Wallet created for user: test
+2024-04-03 02:06:20,380 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:19 - associate_wallet_with_user()] - Attempting to associate wallet with user: test
+2024-04-03 02:06:20,380 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:19 - associate_wallet_with_user()] - Attempting to associate wallet with user: test
+2024-04-03 02:06:20,380 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:19 - associate_wallet_with_user()] - Attempting to associate wallet with user: test
+2024-04-03 02:06:20,380 - main_logger - INFO - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:19 - associate_wallet_with_user()] - Attempting to associate wallet with user: test
+2024-04-03 02:06:20,380 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:24 - associate_wallet_with_user()] - Attempt to associate wallet with non-existent user: test
+2024-04-03 02:06:20,380 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:24 - associate_wallet_with_user()] - Attempt to associate wallet with non-existent user: test
+2024-04-03 02:06:20,380 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:24 - associate_wallet_with_user()] - Attempt to associate wallet with non-existent user: test
+2024-04-03 02:06:20,380 - main_logger - ERROR - [C:\Users\johan\HGN2\src\plugins\user\backend\user.py:24 - associate_wallet_with_user()] - Attempt to associate wallet with non-existent user: test
+2024-04-03 02:06:20,381 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:35 - register()] - Wallet associated with user: test
+2024-04-03 02:06:20,381 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:35 - register()] - Wallet associated with user: test
+2024-04-03 02:06:20,381 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:35 - register()] - Wallet associated with user: test
+2024-04-03 02:06:20,381 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:35 - register()] - Wallet associated with user: test
+2024-04-03 02:06:20,387 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:59 - show_private_key()] - Attempting to display the private key.
+2024-04-03 02:06:20,387 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:59 - show_private_key()] - Attempting to display the private key.
+2024-04-03 02:06:20,387 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:59 - show_private_key()] - Attempting to display the private key.
+2024-04-03 02:06:20,387 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:59 - show_private_key()] - Attempting to display the private key.
+2024-04-03 02:06:20,387 - main_logger - WARNING - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:68 - show_private_key()] - No private key found in session; redirecting to login.
+2024-04-03 02:06:20,387 - main_logger - WARNING - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:68 - show_private_key()] - No private key found in session; redirecting to login.
+2024-04-03 02:06:20,387 - main_logger - WARNING - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:68 - show_private_key()] - No private key found in session; redirecting to login.
+2024-04-03 02:06:20,387 - main_logger - WARNING - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:68 - show_private_key()] - No private key found in session; redirecting to login.
+2024-04-03 02:06:20,393 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:95 - login()] - Rendering login page.
+2024-04-03 02:06:20,393 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:95 - login()] - Rendering login page.
+2024-04-03 02:06:20,393 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:95 - login()] - Rendering login page.
+2024-04-03 02:06:20,393 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:95 - login()] - Rendering login page.

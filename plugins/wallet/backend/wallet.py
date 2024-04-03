@@ -1,18 +1,22 @@
-from cryptography.hazmat.backends import default_backend
+import threading
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
 from network.server import PeerNetwork
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from .wallet_interface import WalletInterface
 from network.pulse.networking import NetworkCommunication
 from models import UserModel, WalletModel, db
-import logging
-
-import threading
 from dag_core.ledger import Ledger
 from dag_core.node import Transaction
 from .wallet_interface import WalletInterface
 from flask import current_app
+
+from utilities.logging import create_main_logger
+main_logger = create_main_logger()
+
 
 class WalletPlugin(WalletInterface):
     def __init__(self):
@@ -24,8 +28,6 @@ class WalletPlugin(WalletInterface):
         # Initialize other necessary components like the peer network
         self.peer_network = PeerNetwork() # Assuming PeerNetwork is implemented in the network module
         # Ensures that the logger is configured for the class
-        logging.basicConfig(level=logging.INFO)
-
 
     def get_private_key_for_user(self, user_id):
         """
@@ -35,6 +37,7 @@ class WalletPlugin(WalletInterface):
         # Placeholder implementation - replace with actual key retrieval logic
         # In a real-world application, this would involve secure storage and retrieval mechanisms.
         # For demonstration purposes, we're returning a hardcoded key.
+        print ("test")
         return "secure_private_key_pem"
 
     def send_funds_to_address(self, sender_username, recipient_address, amount, private_key):
@@ -42,6 +45,7 @@ class WalletPlugin(WalletInterface):
         if not sender_user or not sender_user.wallet:
             return False, "Sender user or wallet not found."
         if sender_user.wallet.amount < amount:
+            self.logger.error("Insufficient funds.")
             return False, "Insufficient funds."
         recipient_wallet = WalletModel.query.filter_by(wallet_address=recipient_address).first()
         if not recipient_wallet:
@@ -50,11 +54,11 @@ class WalletPlugin(WalletInterface):
         # Create a new transaction
         transaction = Transaction(
             sender=sender_user.wallet.wallet_address,
-            receiver=recipient_address,
+            receiver=recipient_wallet.wallet_address,
             amount=amount,
             signature=''  # Placeholder for the actual signature
         )
-        # Sign the transaction
+        # Sign the transaction with the sender's private key (retrieved securely)
         signature = transaction.sign(private_key)
         transaction.signature = signature
 
@@ -71,45 +75,42 @@ class WalletPlugin(WalletInterface):
             else:
                 return False, "Transaction failed to be added to the ledger."
         except NetworkError as e:  # Assuming NetworkError is defined in the network module
-            logging.error(f"Failed to broadcast transaction: {e}")
+            main_logger.error(f"Failed to broadcast transaction: {e}")
             return False, "Failed to broadcast transaction."
         except Exception as e:
-            logging.error(f"Unexpected error during transaction processing: {e}")
+            main_logger.error(f"Unexpected error during transaction processing: {e}")
             return False, "An unexpected error occurred."
 
     def fetch_wallet_data(self, username):
         """
         Fetches wallet data for the specified user from the database.
         """
-        logging.info(f"Attempting to fetch wallet data for username: {username}")
+        main_logger.info(f"Attempting to fetch wallet data for username: {username}")
         try:
             user = UserModel.query.filter_by(username=username).first()
             if not user:
-                logging.warning(f"User not found for username: {username}")
+                main_logger.warning(f"User not found for username: {username}")
                 return None
 
             if user.wallet:
-                logging.info(f"Wallet data found for username: {username}")
+                main_logger.info(f"Wallet data found for username: {username}")
                 return {"address": user.wallet.wallet_address, "public_key": user.wallet.public_key}
             else:
-                logging.warning(f"No wallet associated with username: {username}")
+                main_logger.warning(f"No wallet associated with username: {username}")
                 return None
         except Exception as e:
-            logging.error(f"Error fetching wallet data for username: {username}: {e}")
+            main_logger.error(f"Error fetching wallet data for username: {username}: {e}")
             return None
 
     def create_wallet(self, username):
-        """
-        Generates a new wallet with a private-public key pair and an address, then associates it with a user.
-        """
         user = UserModel.query.filter_by(username=username).first()
         if not user:
-            return {"error": "User not found."}
+            return {"error": "User not found."}, None
 
         if user.wallet:
-            return {"error": "Wallet already exists for this user."}
+            return {"error": "Wallet already exists for this user."}, None
 
-        logging.info(f"Creating wallet for username: {username}")
+        main_logger.info(f"Creating wallet for username: {username}")
         private_key = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
@@ -119,14 +120,24 @@ class WalletPlugin(WalletInterface):
             format=PublicFormat.SubjectPublicKeyInfo
         ).decode('utf-8')
 
-        address = self._generate_address(public_key)
+        # Serialize the private key in PEM format
+        private_key_pem = private_key.private_bytes(
+            encoding=Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()  # Consider using encryption for real-world applications
+        ).decode('utf-8')
 
+        address = self._generate_address(public_key)
         new_wallet = WalletModel(user_id=user.id, wallet_address=address, public_key=public_key_pem)
         db.session.add(new_wallet)
         db.session.commit()
 
-        # Note: Handle the private key securely.
-        return {"public_key": public_key_pem, "address": address}
+        # Debugging: Log the created private key
+        main_logger.debug(f"Private key created for user {username}: {private_key_pem}")
+
+        # Return the public key, address, and private key to the caller
+        return {"public_key": public_key_pem, "address": address}, private_key_pem
+
 
     def _generate_address(self, public_key):
         """
@@ -135,25 +146,31 @@ class WalletPlugin(WalletInterface):
         # Your logic to generate an address goes here
         return "generated_address"
 
-    def sign_transaction(self, private_key, transaction):
+    def sign_transaction(self, private_key_pem, transaction):
         """
-        Signs a transaction using the provided private key.
+        Signs a transaction using the provided PEM-encoded private key.
 
         Args:
-            private_key (RSAPrivateKey): The RSA private key used for signing the transaction.
-            transaction (dict): The transaction data to sign.
+            private_key_pem (str): The PEM-encoded private key.
+            transaction (TransactionModel): The transaction to sign.
 
         Returns:
-            bytes: The transaction signature.
+            The signature as bytes.
         """
-        transaction_bytes = str(transaction).encode('utf-8')
+        # Convert the PEM-encoded private key string back into a private key object
+        private_key = serialization.load_pem_private_key(
+            private_key_pem.encode(),
+            password=None,  # Update accordingly if your private key is password-protected
+        )
+
+        # Sign the transaction data
         signature = private_key.sign(
-            transaction_bytes,
+            transaction.to_bytes(),  # Ensure you have a method to convert transaction to bytes
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
+                salt_length=padding.PSS.MAX_LENGTH,
             ),
-            hashes.SHA256()
+            hashes.SHA256(),
         )
         return signature
 
@@ -221,7 +238,7 @@ class WalletPlugin(WalletInterface):
             ledger.add_transaction(transaction, transaction.sender)
             return True
         except Exception as e:
-            logging.error(f"Error adding transaction to ledger: {e}")
+            main_logger.error(f"Error adding transaction to ledger: {e}")
             return False
 
     def verify_transaction_signature(self, transaction):
@@ -237,7 +254,7 @@ class WalletPlugin(WalletInterface):
         """
         transaction = Ledger.get_transaction(transaction_id)
         if not transaction:
-            logging.error(f"Transaction {transaction_id} not found for confirmation.")
+            main_logger.error(f"Transaction {transaction_id} not found for confirmation.")
             return
 
         sender_wallet = WalletModel.query.filter_by(wallet_address=transaction.sender).first()
@@ -246,7 +263,7 @@ class WalletPlugin(WalletInterface):
             sender_wallet.amount -= transaction.amount
             recipient_wallet.amount += transaction.amount
             db.session.commit()
-            logging.info(f"Transaction {transaction_id} confirmed and balances updated.")
+            main_logger.info(f"Transaction {transaction_id} confirmed and balances updated.")
         else:
-            logging.error(f"Failed to update wallets for transaction {transaction_id}.")
+            main_logger.error(f"Failed to update wallets for transaction {transaction_id}.")
 
