@@ -23,6 +23,12 @@ def dashboard():
     # Retrieve the username from the session
     username = session.get('username')
     main_logger.info(f"Dashboard accessed by user: {username}")
+    # Ensure that the NODE_URL is set in the application's configuration
+    if 'NODE_URL' not in current_app.config:
+        main_logger.error("NODE_URL is not set in the application's configuration.")
+        flash("Configuration error. Please contact the administrator.", 'error')
+        return render_template('error.html', message="Configuration error.")
+
 
     # Ensure that the NODE_URL is set in the application's configuration
     if 'NODE_URL' not in current_app.config:
@@ -48,7 +54,7 @@ def dashboard():
 
     try:
         # Fetch wallet data for the user
-        wallet_data = wallet_plugin.fetch_wallet_data(username)
+        wallet_data = wallet_plugin.fetch_wallet_data(username) if wallet_plugin else None
         main_logger.info("Fetched wallet data for user %s: %s", username, wallet_data)
         return render_template('dashboard.html', wallet=wallet_data)
     except Exception as e:
@@ -63,7 +69,13 @@ def send():
         return redirect(url_for('user.login'))
 
     # Create an instance of WalletPlugin within the application context
-    wallet_plugin = get_wallet_plugin()
+    try:
+        wallet_plugin = get_wallet_plugin()
+    except RuntimeError as e:
+        main_logger.error(f"Failed to get WalletPlugin: {e}")
+        flash("An error occurred while accessing the wallet service.", 'error')
+        return render_template('error.html', message="Wallet service error.")
+
 
     if request.method == 'POST':
         recipient_address = request.form.get('recipient_address')
