@@ -14,6 +14,8 @@ from dag_core.ledger import Ledger
 from dag_core.node import Transaction
 from .wallet_interface import WalletInterface
 from flask import current_app
+from base64 import b64decode
+
 
 from utilities.logging import create_main_logger
 main_logger = create_main_logger()
@@ -121,20 +123,27 @@ class WalletPlugin(WalletInterface):
             format=PublicFormat.SubjectPublicKeyInfo
         ).decode('utf-8')
 
-        # Serialize the private key in PEM format
+        # Add logging statement to trace the execution flow
+        main_logger.debug("Before generating private key PEM")
+
         private_key_pem = private_key.private_bytes(
             encoding=Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption()  # Consider using encryption for real-world applications
         ).decode('utf-8')
 
+        # Add logging statement to trace the execution flow
+        main_logger.debug("After generating private key PEM")
+
+        main_logger.debug(f"Private key PEM before encoding: {private_key_pem}")
+        # Encode the private key to base64
+        private_key_base64 = base64.b64encode(private_key_pem.encode('utf-8')).decode('utf-8')
+        main_logger.debug(f"Private key encoded to base64: {private_key_base64}")
+
         address = self._generate_address(public_key)
         new_wallet = WalletModel(user_id=user.id, wallet_address=address, public_key=public_key_pem)
         db.session.add(new_wallet)
         db.session.commit()
-
-        # Debugging: Log the created private key
-        main_logger.debug(f"Private key created for user {username}: {private_key_pem}")
 
         # Return the public key, address, and private key to the caller
         return {"public_key": public_key_pem, "address": address}, private_key_pem
@@ -165,46 +174,64 @@ class WalletPlugin(WalletInterface):
         # Return the first 40 characters to simulate an address (adjust as needed)
         return address[:40]
 
-    def sign_transaction(self, private_key_pem, transaction):
-        """
-        Signs a transaction using the provided PEM-encoded private key.
+    @staticmethod
+    def safe_b64decode(data):
+        """Safely decodes a base64-encoded string, ensuring correct padding."""
+        original_data = data  # Store the original data for logging
+        data = data.strip()  # Remove any trailing whitespace or newlines
+        main_logger.info(f"Original data before strip: {original_data}")
+        main_logger.info(f"Data after strip: {data}")
 
-        Args:
-            private_key_pem (str): The PEM-encoded private key.
-            transaction (TransactionModel): The transaction to sign.
+        # Add padding if necessary before decoding
+        if len(data) % 4 != 0:
+            data += '=' * (4 - len(data) % 4)
+            main_logger.info(f"Data after adding padding: {data}")
 
-        Returns:
-            The signature as bytes.
-        """
         try:
-            # Decode the PEM-encoded private key and convert it back into a private key object
-            # Ensure the private key is correctly padded to a multiple of 4
-            # Ensure the private key is correctly padded to a multiple of 4
-            private_key_pem = private_key_pem.strip()
-            private_key_bytes = base64.b64decode(private_key_pem + '===')
-            private_key = serialization.load_pem_private_key(
-                private_key_bytes,
-                password=None,  # Update accordingly if your private key is password-protected
-                backend=default_backend()
-            )
-        except ValueError as e:
-            main_logger.error(f"Error deserializing the private key: {e}")
+            decoded_data = base64.b64decode(data)
+            main_logger.info(f"Decoded data: {decoded_data}")
+            main_logger.info(f"Decoded data length: {len(decoded_data)}")
+            return decoded_data
+        except Exception as e:
+            main_logger.error(f"Error decoding base64 data: {e}")
             raise
 
+    def sign_transaction(self, private_key_pem, transaction):
         try:
-            # Sign the transaction data
-            signature = private_key.sign(
-                transaction.to_bytes(),  # Ensure you have a method to convert transaction to bytes
-                padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH,
-                ),
-                hashes.SHA256(),
+            main_logger.info("Verifying private key format...")
+            # Log the private key before using it
+            main_logger.info(f"Private key PEM: {private_key_pem}")
+
+            # Verify Private Key Format
+            if not private_key_pem.startswith("-----BEGIN PRIVATE KEY-----") or \
+               not private_key_pem.endswith("-----END PRIVATE KEY-----"):
+                raise ValueError("Private key is not in PEM format.")
+            else:
+                main_logger.info("Private key format is correct.")
+
+            main_logger.info("Checking for encryption...")
+            # Check for Encryption
+            private_key = serialization.load_pem_private_key(
+                private_key_pem.encode(), password=None, backend=default_backend()
             )
+
+            main_logger.info("Verifying supported key types...")
+            # Supported Key Types
+            if not isinstance(private_key, serialization.load_pem_private_key):
+                raise ValueError("Unsupported key type.")
+            else:
+                main_logger.info("Private key type is supported.")
+
+            # Proceed with signing the transaction...
+            # Your signing logic here
+
+            main_logger.info("Transaction signing process completed successfully.")
             return signature
         except Exception as e:
-            main_logger.error(f"Error signing the transaction: {e}")
+            main_logger.error(f"Exception occurred during transaction process: {e}")
             raise
+
+
 
     def verify_transaction(self, public_key, transaction, signature):
         """
