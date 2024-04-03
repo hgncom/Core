@@ -62,11 +62,6 @@ def register_user(username, email, password):
             logger.error("Invalid registration data provided.")
             return {"error": "Invalid registration data."}
 
-        existing_user = UserModel.query.filter((UserModel.username == username) | (UserModel.email == email)).first()
-        if existing_user:
-            logger.error(f"User with given username or email already exists: {username}")
-            return {"error": "User already exists."}
-
         # Check if a user with the same username or email already exists
         existing_user = UserModel.query.filter(
             (UserModel.username == username) | (UserModel.email == email)
@@ -87,12 +82,6 @@ def register_user(username, email, password):
             logger.error(f"Error creating wallet for user: {username}")
             db.session.rollback()
             return {"error": "Error creating wallet."}
-
-        wallet_association = associate_wallet_with_user(username, wallet_details)
-        if 'error' in wallet_association:
-            logger.error(f"Error associating wallet with user: {username}")
-            db.session.rollback()
-            return {"error": "Error associating wallet with user."}
 
         db.session.commit()
         logger.info(f"User {username} registered successfully.")
