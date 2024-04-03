@@ -198,13 +198,11 @@ class WalletPlugin(WalletInterface):
 
     def sign_transaction(self, transaction, private_key_pem):
         try:
-            # Ensure the private key is in PEM format
-            if not private_key_pem.startswith("-----BEGIN PRIVATE KEY-----"):
-                raise ValueError("Private key is not in PEM format.")
-
-            # Load the private key directly from PEM format
+            # Decode the base64-encoded private key
+            private_key_data = WalletPlugin.safe_b64decode(private_key_pem)
+            # Load the private key from the decoded data
             private_key = serialization.load_pem_private_key(
-                private_key_pem.encode(), password=None, backend=default_backend()
+                private_key_data, password=None, backend=default_backend()
             )
             # Sign the transaction
             signer = private_key.signer(
