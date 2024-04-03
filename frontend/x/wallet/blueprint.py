@@ -26,7 +26,7 @@ def dashboard():
 
     # Create an instance of WalletPlugin within the application context
     if 'NODE_URL' not in current_app.config:
-        current_app.config['NODE_URL'] = 'http://default-node-url.com'  # Set a default NODE_URL or ensure it is configured
+        current_app.config['NODE_URL'] = 'http://127.0.0.1:5001'  # Set a default NODE_URL or ensure it is configured
     wallet_plugin = get_wallet_plugin()
 
     # Redirect to login if user is not logged in
