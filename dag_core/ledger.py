@@ -18,6 +18,7 @@ main_logger.addHandler(file_handler)
 
 class Ledger:
     def __init__(self, fernet_key, network_communication):
+        self.logger.info("Ledger initialized with network communication and consensus mechanism.")
         self.logger = main_logger
         self.transactions = {}
         self.confirmed_transactions = set()
@@ -121,14 +122,20 @@ class Ledger:
         self.shard_manager = ShardManager(num_shards=10)  # Initialize ShardManager with 10 shards
 
     def add_transaction(self, transaction):
+        self.logger.info(f"Attempting to add transaction {transaction.transaction_id} to the ledger.")
         main_logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
         if not self.pulse_consensus.validate_and_reach_consensus(transaction.to_dict()):
+            self.logger.error(f"Transaction {transaction.transaction_id} failed consensus validation and will not be added to the ledger.")
             main_logger.error(f"Transaction {transaction.transaction_id} failed consensus validation.")
             return False
+        self.logger.info(f"Transaction {transaction.transaction_id} passed consensus validation.")
         shard_id = self.shard_manager.assign_shard(transaction)
+        self.logger.info(f"Transaction {transaction.transaction_id} assigned to shard {shard_id}.")
         self.shard_manager.process_transaction_in_shard(transaction, shard_id)
+        self.logger.info(f"Transaction {transaction.transaction_id} processed in shard {shard_id}.")
         self.attach_transaction_to_dag(transaction)
         main_logger.info(f"Transaction {transaction.transaction_id} successfully added to the ledger")
+        self.logger.info(f"Transaction {transaction.transaction_id} attached to the DAG.")
         return True
 
     def verify_transaction_signature(self, transaction):
@@ -179,6 +186,7 @@ class Ledger:
         Verify the signature and other properties of the transaction.
         """
         # Your verification logic here
+        self.logger.info(f"Transaction {transaction.transaction_id} attached to the DAG.")
         return True
 
     def can_update_balances(self, transaction):
