@@ -95,3 +95,7 @@ AttributeError: 'UserModel' object has no attribute 'set_password'. Did you mean
 2024-04-03 02:06:20,393 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:95 - login()] - Rendering login page.
 2024-04-03 02:06:20,393 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:95 - login()] - Rendering login page.
 2024-04-03 02:06:20,393 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:95 - login()] - Rendering login page.
+2024-04-03 02:15:48,271 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:99 - login()] - Rendering login page.
+2024-04-03 02:15:48,271 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:99 - login()] - Rendering login page.
+2024-04-03 02:15:48,271 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:99 - login()] - Rendering login page.
+2024-04-03 02:15:48,271 - main_logger - INFO - [C:\Users\johan\HGN2\src\frontend\x\user\blueprint.py:99 - login()] - Rendering login page.
