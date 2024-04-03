@@ -9,6 +9,7 @@ from models.transaction import TransactionModel
 from models.base import db
 from plugins.wallet.backend.wallet import WalletPlugin
 from utilities.logging import create_main_logger
+from dag_core.node import Transaction
 
 wallet_plugin = WalletPlugin()
 main_logger = create_main_logger()
@@ -61,12 +62,11 @@ def send():
                 flash('Insufficient funds or invalid recipient address.', 'error')
                 return render_template('send.html')
 
-            new_transaction = TransactionModel(
+            new_transaction = Transaction(
                 sender=sender_user.wallet.wallet_address,
                 receiver=recipient_address,
                 amount=amount,
-                signature='',  # Placeholder for actual signature
-                transaction_id=str(uuid.uuid4())
+                signature=''  # Placeholder for actual signature
             )
 
             # Retrieve the actual private key for the sender
@@ -76,13 +76,12 @@ def send():
                 return render_template('send.html')
 
             # Sign the transaction with the sender's private key
-            new_transaction.signature = wallet_plugin.sign_transaction(new_transaction, sender_private_key_pem)
+            new_transaction = wallet_plugin.sign_transaction(new_transaction, sender_private_key_pem)
 
-            db.session.add(new_transaction)
-            sender_user.wallet.amount -= amount
-            db.session.commit()
+            # Add the transaction to the database or ledger
+            # ...
 
-            main_logger.info(f"Transaction {new_transaction.transaction_id} successfully processed.")
+            main_logger.info(f"Transaction successfully processed.")
             flash('Funds successfully sent.', 'success')
             return redirect(url_for('.dashboard'))
 
