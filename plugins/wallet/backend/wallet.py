@@ -176,9 +176,10 @@ class WalletPlugin(WalletInterface):
             The signature as bytes.
         """
         try:
-            # Convert the PEM-encoded private key string back into a private key object
+            # Decode the PEM-encoded private key and convert it back into a private key object
+            private_key_bytes = base64.b64decode(private_key_pem)
             private_key = serialization.load_pem_private_key(
-                private_key_pem.encode(),
+                private_key_bytes,
                 password=None,  # Update accordingly if your private key is password-protected
                 backend=default_backend()
             )
