@@ -57,6 +57,7 @@ class WalletPlugin(WalletInterface):
         sender_user = UserModel.query.filter_by(username=sender_username).first()
         if not sender_user or not sender_user.wallet:
             return False, "Sender user or wallet not found."
+        main_logger.info(f"Sender {sender_username} initiating a transaction to {recipient_address} for amount {amount}.")
         if sender_user.wallet.amount < amount:
             self.logger.error("Insufficient funds.")
             return False, "Insufficient funds."
@@ -71,6 +72,17 @@ class WalletPlugin(WalletInterface):
             amount=amount,
             signature=''  # Placeholder for the actual signature
         )
+        main_logger.info(f"Transaction created for {sender_username} to {recipient_address} for amount {amount}.")
+        # Sign the transaction with the sender's private key (retrieved securely)
+        signature = self.sign_transaction(transaction, private_key)
+        transaction.signature = signature
+        main_logger.info(f"Transaction signed with signature {signature}.")
+
+        # Propagate the transaction to the network and add to the ledger
+        transaction_data = transaction.to_dict()  # Assuming Transaction has a to_dict method
+        transaction_data['signature'] = signature
+        main_logger.info(f"Broadcasting transaction {transaction.transaction_id} to the network.")
+        )
         # Sign the transaction with the sender's private key (retrieved securely)
         signature = transaction.sign(private_key)
         transaction.signature = signature
@@ -80,19 +92,17 @@ class WalletPlugin(WalletInterface):
         transaction_data['signature'] = signature
         try:
             self.peer_network.broadcast_transaction(transaction_data)
-            if self.ledger.add_transaction(transaction, sender_user.wallet.public_key):
-                # Temporarily deduct the amount from the sender's wallet
-                sender_user.wallet.amount -= amount
-                db.session.commit()
+            main_logger.info(f"Transaction {transaction.transaction_id} broadcasted to peers.")
+            # Add transaction to ledger and update sender's balance
+            if self.ledger.add_transaction(transaction):
+                main_logger.info(f"Transaction {transaction.transaction_id} added to ledger, awaiting confirmation.")
                 return True, "Transaction sent and awaiting confirmation."
             else:
+                main_logger.error(f"Transaction {transaction.transaction_id} could not be added to ledger.")
                 return False, "Transaction failed to be added to the ledger."
-        except NetworkError as e:  # Assuming NetworkError is defined in the network module
-            main_logger.error(f"Failed to broadcast transaction: {e}")
-            return False, "Failed to broadcast transaction."
         except Exception as e:
-            main_logger.error(f"Unexpected error during transaction processing: {e}")
-            return False, "An unexpected error occurred."
+            main_logger.error(f"Error during sending funds: {e}")
+            return False, "An error occurred during the sending process."
 
     def fetch_wallet_data(self, username):
         """
