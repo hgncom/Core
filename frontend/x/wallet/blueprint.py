@@ -24,10 +24,23 @@ def dashboard():
     username = session.get('username')
     main_logger.info(f"Dashboard accessed by user: {username}")
 
+    # Ensure that the NODE_URL is set in the application's configuration
+    if 'NODE_URL' not in current_app.config:
+        main_logger.error("NODE_URL is not set in the application's configuration.")
+        flash("Configuration error. Please contact the administrator.", 'error')
+        return render_template('error.html', message="Configuration error.")
+
     # Create an instance of WalletPlugin within the application context
     if 'NODE_URL' not in current_app.config:
         current_app.config['NODE_URL'] = 'http://127.0.0.1:5001'  # Set a default NODE_URL or ensure it is configured
     wallet_plugin = get_wallet_plugin()
+
+    try:
+        wallet_plugin = get_wallet_plugin()
+    except RuntimeError as e:
+        main_logger.error(f"Failed to get WalletPlugin: {e}")
+        flash("An error occurred while accessing the wallet service.", 'error')
+        return render_template('error.html', message="Wallet service error.")
 
     # Redirect to login if user is not logged in
     if not username:
@@ -41,7 +54,8 @@ def dashboard():
     except Exception as e:
         # Log and render error message
         main_logger.error("Error fetching wallet data for user %s: %s", username, str(e))
-        return render_template('error.html', message="An error occurred while fetching wallet data.")
+        flash("An error occurred while fetching wallet data.", 'error')
+        return render_template('error.html', message=str(e))
 
 @wallet_blueprint.route('/send', methods=['GET', 'POST'])
 def send():
