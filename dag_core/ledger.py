@@ -124,16 +124,20 @@ class Ledger:
     def add_transaction(self, transaction):
         self.logger.info(f"Attempting to add transaction {transaction.transaction_id} to the ledger.")
         main_logger.info(f"Adding transaction {transaction.transaction_id} to the ledger")
+        main_logger.debug(f"Transaction details: sender={transaction.sender}, receiver={transaction.receiver}, amount={transaction.amount}")
         if not self.pulse_consensus.validate_and_reach_consensus(transaction.to_dict()):
             self.logger.error(f"Transaction {transaction.transaction_id} failed consensus validation and will not be added to the ledger.")
             main_logger.error(f"Transaction {transaction.transaction_id} failed consensus validation.")
             return False
         self.logger.info(f"Transaction {transaction.transaction_id} passed consensus validation.")
         shard_id = self.shard_manager.assign_shard(transaction)
+        main_logger.debug(f"Transaction {transaction.transaction_id} assigned to shard {shard_id} for processing.")
         self.logger.info(f"Transaction {transaction.transaction_id} assigned to shard {shard_id}.")
         self.shard_manager.process_transaction_in_shard(transaction, shard_id)
+        main_logger.debug(f"Transaction {transaction.transaction_id} processed in shard {shard_id}. Checking for success...")
         self.logger.info(f"Transaction {transaction.transaction_id} processed in shard {shard_id}.")
         self.attach_transaction_to_dag(transaction)
+        main_logger.debug(f"Transaction {transaction.transaction_id} attached to DAG. Awaiting further confirmations...")
         main_logger.info(f"Transaction {transaction.transaction_id} successfully added to the ledger")
         self.logger.info(f"Transaction {transaction.transaction_id} attached to the DAG.")
         return True

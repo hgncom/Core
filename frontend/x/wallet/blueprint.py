@@ -46,6 +46,7 @@ def send():
     if request.method == 'POST':
         recipient_address = request.form.get('recipient_address')
         amount = request.form.get('amount', type=float)
+        main_logger.debug(f"Send funds form submitted with recipient_address: {recipient_address}, amount: {amount}")
 
         if not recipient_address or amount <= 0:
             flash('Invalid recipient address or amount', 'error')
@@ -77,9 +78,11 @@ def send():
 
             # Sign the transaction with the sender's private key
             new_transaction = wallet_plugin.sign_transaction(new_transaction, sender_private_key_pem)
+            main_logger.debug(f"Transaction signed: {new_transaction.signature}")
 
             # Add the transaction to the database or ledger
             # ...
+            main_logger.debug(f"Attempting to add transaction to the ledger: {new_transaction.transaction_id}")
 
             main_logger.info(f"Transaction successfully processed.")
             flash('Funds successfully sent.', 'success')
