@@ -64,7 +64,6 @@ def send():
             new_transaction = TransactionModel(
                 sender=sender_user.wallet.wallet_address,
                 receiver=recipient_address,
-                receiver=recipient_wallet.wallet_address,
                 amount=amount,
                 signature='',  # Placeholder for actual signature
                 transaction_id=str(uuid.uuid4())
