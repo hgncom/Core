@@ -198,10 +198,8 @@ class WalletPlugin(WalletInterface):
 
     def sign_transaction(self, transaction, private_key_pem):
         try:
-            # Ensure the private_key_pem is a string and decode it
-            if not isinstance(private_key_pem, str):
-                raise ValueError("The private_key_pem must be a base64-encoded string.")
-            private_key_data = WalletPlugin.safe_b64decode(private_key_pem.strip())
+            # Decode the base64-encoded private key
+            private_key_data = WalletPlugin.safe_b64decode(private_key_pem)
             # Load the private key from PEM format
             private_key = serialization.load_pem_private_key(
                 private_key_data, password=None, backend=default_backend()
