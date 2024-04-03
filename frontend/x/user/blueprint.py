@@ -12,10 +12,10 @@ def register():
     # Log the request path and method
     main_logger.info(f"Request path: {request.path}, Method: {request.method}")
 
-    # Initialize variables at the beginning
-    username = None
-    email = None
-    password = None
+    # Check if a registration process is already in progress
+    if session.get('registration_in_progress'):
+        flash('Registration is already in progress. Please wait.', 'info')
+        return render_template('register.html')
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -25,52 +25,34 @@ def register():
         if not username or not email or not password:
             main_logger.warning("Attempted registration with incomplete form data.")
             flash("Please fill out all fields.", 'error')
-            # Clear the registration_in_progress flag after the registration process is complete
-       session.pop('registration_in_progress', None)
+        else:
+            main_logger.info(f"Attempting to register user: {username}")
+            session['registration_in_progress'] = True
 
-       return render_template('register.html')
+            try:
+                registration_success = register_user(username, email, password)
 
-        main_logger.info(f"Attempting to register user: {username}")
+                if registration_success:
+                    wallet_plugin = WalletPlugin()
+                    wallet_details, private_key_pem = wallet_plugin.create_wallet(username)
+                    main_logger.info(f"Wallet created for user: {username}")
 
-       # Prevent multiple form submissions by checking if the user is already being processed
-       if session.get('registration_in_progress'):
-           flash('Registration is already in progress. Please wait.', 'info')
-           # Clear the registration_in_progress flag after the registration process is complete
-       session.pop('registration_in_progress', None)
+                    associate_wallet_with_user(username, wallet_details)
+                    main_logger.info(f"Wallet associated with user: {username}")
+                    session['private_key'] = private_key_pem
+                    flash("Registration successful. Please note your private key.", 'success')
+                else:
+                    flash("Registration failed.", 'error')
+            except Exception as e:
+                main_logger.error(f"Unexpected error during registration process for user {username}: {e}")
+                flash("An unexpected error occurred. Please try again.", 'error')
+            finally:
+                # Clear the registration_in_progress flag after the registration process is complete
+                session.pop('registration_in_progress', None)
 
-       return render_template('register.html')
-       else:
-           session['registration_in_progress'] = True
-
-    try:
-        if request.method != 'POST':
-            # If it's not a POST request, just render the registration template
-            # Clear the registration_in_progress flag after the registration process is complete
-       session.pop('registration_in_progress', None)
-
-       return render_template('register.html')
-
-        registration_success = register_user(username, email, password)
-
-        if registration_success:
-            wallet_plugin = WalletPlugin()
-            wallet_details, private_key_pem = wallet_plugin.create_wallet(username)
-            main_logger.info(f"Wallet created for user: {username}")
-
-            main_logger.debug(f"Session after account creation: {session}")
-
-            associate_wallet_with_user(username, wallet_details)
-            main_logger.info(f"Wallet associated with user: {username}")
-            session['private_key'] = private_key_pem
-            # Commented out the redirect to isolate the cause
-            # return redirect(url_for('user.show_private_key'))
-            flash("Registration successful. Please note your private key.", 'success')
-
-    except Exception as e:
-        main_logger.error(f"Unexpected error during registration process for user {username}: {e}")
-        flash("An unexpected error occurred. Please try again.", 'error')
-
+    # If it's a GET request or if there was an error with the form submission
     return render_template('register.html')
+
 
 
 @user_blueprint.route('/show_private_key')
@@ -92,7 +74,7 @@ def show_private_key():
 @user_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     # Log the request path
-    main_logger.info(f"Request path: {request.path}, Method: {request.method}")
+    main_logger.info(f"(LOGIN) Request path: {request.path}, Method: {request.method}")
 
     if request.method == 'POST':
         username = request.form.get('username')
