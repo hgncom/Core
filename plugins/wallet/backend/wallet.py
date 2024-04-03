@@ -196,37 +196,25 @@ class WalletPlugin(WalletInterface):
             main_logger.error(f"Error decoding base64 data: {e}")
             raise
 
-    def sign_transaction(self, private_key_pem, transaction):
+    def sign_transaction(self, transaction, private_key_pem):
         try:
-            main_logger.info("Verifying private key format...")
-            # Log the private key before using it
-            main_logger.info(f"Private key PEM: {private_key_pem}")
-
-            # Verify Private Key Format
-            if not private_key_pem.startswith("-----BEGIN PRIVATE KEY-----") or \
-               not private_key_pem.endswith("-----END PRIVATE KEY-----"):
-                raise ValueError("Private key is not in PEM format.")
-            else:
-                main_logger.info("Private key format is correct.")
-
-            main_logger.info("Checking for encryption...")
-            # Check for Encryption
+            # Decode the base64-encoded private key
+            private_key_data = WalletPlugin.safe_b64decode(private_key_pem)
+            # Load the private key from PEM format
             private_key = serialization.load_pem_private_key(
-                private_key_pem.encode(), password=None, backend=default_backend()
+                private_key_data, password=None, backend=default_backend()
             )
-
-            main_logger.info("Verifying supported key types...")
-            # Supported Key Types
-            if not isinstance(private_key, serialization.load_pem_private_key):
-                raise ValueError("Unsupported key type.")
-            else:
-                main_logger.info("Private key type is supported.")
-
-            # Proceed with signing the transaction...
-            # Your signing logic here
-
-            main_logger.info("Transaction signing process completed successfully.")
-            return signature
+            # Sign the transaction
+            signer = private_key.signer(
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+            signer.update(transaction.to_bytes())
+            signature = signer.finalize()
+            return base64.b64encode(signature).decode('utf-8')
         except Exception as e:
             main_logger.error(f"Exception occurred during transaction process: {e}")
             raise
