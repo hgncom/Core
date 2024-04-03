@@ -52,15 +52,18 @@ def send():
 
         username = session['username']
         try:
-            sender_wallet = WalletModel.query.join(UserModel).filter(UserModel.username == username).first()
-            recipient_wallet = WalletModel.query.filter_by(wallet_address=recipient_address).first()
+            sender_user = UserModel.query.filter_by(username=username).first()
+            if not sender_user or not sender_user.wallet:
+                flash('Sender user or wallet not found.', 'error')
+                return render_template('send.html')
 
-            if not sender_wallet or not recipient_wallet or sender_wallet.amount < amount:
+            if sender_user.wallet.amount < amount:
                 flash('Insufficient funds or invalid recipient address.', 'error')
                 return render_template('send.html')
 
             new_transaction = TransactionModel(
-                sender=sender_wallet.wallet_address,
+                sender=sender_user.wallet.wallet_address,
+                receiver=recipient_address,
                 receiver=recipient_wallet.wallet_address,
                 amount=amount,
                 signature='',  # Placeholder for actual signature
@@ -68,17 +71,16 @@ def send():
             )
 
             # Retrieve the actual private key for the sender
-            sender_private_key_pem = wallet_plugin.get_private_key_for_user(sender_wallet.user_id)
+            sender_private_key_pem = wallet_plugin.get_private_key_for_user(sender_user.id)
             if not sender_private_key_pem:
                 flash('Private key not found.', 'error')
                 return render_template('send.html')
 
             # Sign the transaction with the sender's private key
-            new_transaction.signature = wallet_plugin.sign_transaction(sender_private_key_pem, new_transaction)
+            new_transaction.signature = wallet_plugin.sign_transaction(new_transaction, sender_private_key_pem)
 
             db.session.add(new_transaction)
-            sender_wallet.amount -= amount
-            recipient_wallet.amount += amount
+            sender_user.wallet.amount -= amount
             db.session.commit()
 
             main_logger.info(f"Transaction {new_transaction.transaction_id} successfully processed.")
