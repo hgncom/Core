@@ -152,7 +152,18 @@ class Ledger:
             self.logger.warning(f"Transaction {transaction_id} not found.")
             return False
         if self.pulse_consensus.confirm_transaction(transaction):
-            self.update_balances(transaction)
+            sender_wallet = WalletModel.query.filter_by(wallet_address=transaction.sender).first()
+            recipient_wallet = WalletModel.query.filter_by(wallet_address=transaction.receiver).first()
+            if sender_wallet and recipient_wallet:
+                sender_wallet.amount -= transaction.amount
+                recipient_wallet.amount += transaction.amount
+                db.session.commit()
+                self.logger.info(f"Transaction {transaction_id} confirmed and balances updated.")
+                self.confirmed_transactions.add(transaction_id)
+                if transaction_id in self.pending_transactions:
+                    self.pending_transactions.remove(transaction_id)
+            else:
+                self.logger.error(f"Failed to update wallets for transaction {transaction_id}.")
             self.logger.info(f"Transaction {transaction_id} confirmed.")
             return True
         else:
