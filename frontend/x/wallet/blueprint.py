@@ -55,14 +55,14 @@ def dashboard():
        if 'username' not in session:
            return redirect(url_for('user.login'))
 
-        # Create an instance of WalletPlugin within the application context
-        wallet_plugin = get_wallet_plugin()
+    # Create an instance of WalletPlugin within the application context
+    wallet_plugin = get_wallet_plugin()
 
-        # Create an instance of WalletPlugin within the application context
-        wallet_plugin = get_wallet_plugin()
+    # Create an instance of WalletPlugin within the application context
+    wallet_plugin = get_wallet_plugin()
 
-        # Create an instance of WalletPlugin within the application context
-        wallet_plugin = get_wallet_plugin()
+    # Create an instance of WalletPlugin within the application context
+    wallet_plugin = get_wallet_plugin()
 
        if request.method == 'POST':
            recipient_address = request.form.get('recipient_address')
