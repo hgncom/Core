@@ -139,12 +139,30 @@ class WalletPlugin(WalletInterface):
         return {"public_key": public_key_pem, "address": address}, private_key_pem
 
 
+
     def _generate_address(self, public_key):
         """
-        Generate a wallet address from the public key. Implement your logic here.
+        Generates a wallet address from a public key by hashing it.
+
+        Args:
+            public_key (RSAPublicKey): The RSA public key from which to generate the wallet address.
+
+        Returns:
+            str: A wallet address derived from the public key hash.
         """
-        # Your logic to generate an address goes here
-        return "generated_address"
+        # Convert the public key to bytes
+        public_key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        # Create a SHA-256 hash object
+        digest = hashes.Hash(hashes.SHA256())
+        # Update the hash object with the public key bytes
+        digest.update(public_key_bytes)
+        # Finalize the hash and encode it as a hexadecimal string
+        address = digest.finalize().hex()
+        # Return the first 40 characters to simulate an address (adjust as needed)
+        return address[:40]
 
     def sign_transaction(self, private_key_pem, transaction):
         """
