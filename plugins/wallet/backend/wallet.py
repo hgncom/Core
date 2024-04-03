@@ -180,11 +180,8 @@ class WalletPlugin(WalletInterface):
             # Decode the PEM-encoded private key and convert it back into a private key object
             # Ensure the private key is correctly padded to a multiple of 4
             # Ensure the private key is correctly padded to a multiple of 4
-            private_key_pem = private_key_pem.strip().encode('utf-8')
-            missing_padding = len(private_key_pem) % 4
-            if missing_padding:
-                private_key_pem += b'=' * (4 - missing_padding)
-            private_key_bytes = base64.b64decode(private_key_pem)
+            private_key_pem = private_key_pem.strip()
+            private_key_bytes = base64.b64decode(private_key_pem + '===')
             private_key = serialization.load_pem_private_key(
                 private_key_bytes,
                 password=None,  # Update accordingly if your private key is password-protected
