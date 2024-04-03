@@ -9,7 +9,8 @@ def create_main_logger():
     logger.setLevel(logging.INFO)
 
     # Create a file handler to write logs to a file
-    file_handler = logging.FileHandler('main.log')
+    if not logger.handlers:
+        file_handler = logging.FileHandler('main.log')
 
     # Enhance the formatter to include file name, line number, and the function name
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - [%(pathname)s:%(lineno)d - %(funcName)s()] - %(message)s')
@@ -18,6 +19,6 @@ def create_main_logger():
     file_handler.setFormatter(formatter)
 
     # Add the file handler to the logger
-    logger.addHandler(file_handler)
+        logger.addHandler(file_handler)
 
     return logger
