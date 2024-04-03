@@ -67,6 +67,13 @@ def send():
                 transaction_id=str(uuid.uuid4())
             )
 
+            # Retrieve the actual private key for the sender
+            sender_private_key_pem = wallet_plugin.get_private_key_for_user(sender_wallet.user_id)
+            if not sender_private_key_pem:
+                flash('Private key not found.', 'error')
+                return render_template('send.html')
+
+            # Sign the transaction with the sender's private key
             # Implement the signature process correctly based on your application's requirements
             # This part of the code assumes you have a mechanism to sign transactions
             if sender_wallet:
