@@ -37,11 +37,21 @@ class WalletPlugin(WalletInterface):
         Retrieves the private key for the user with the given user_id.
         This is a placeholder function and should be implemented with proper security.
         """
-        # Placeholder implementation - replace with actual key retrieval logic
-        # In a real-world application, this would involve secure storage and retrieval mechanisms.
-        # For demonstration purposes, we're returning a hardcoded key.
-        print ("test")
-        return "secure_private_key_pem"
+        # Generate a new RSA private key
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+
+        # Get the PEM representation of the private key
+        private_key_pem = private_key.private_bytes(
+            encoding=Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ).decode('utf-8')
+
+        return private_key_pem
 
     def send_funds_to_address(self, sender_username, recipient_address, amount, private_key):
         sender_user = UserModel.query.filter_by(username=sender_username).first()
@@ -198,27 +208,31 @@ class WalletPlugin(WalletInterface):
 
     def sign_transaction(self, transaction, private_key_pem):
         try:
-            # Decode the base64-encoded private key
-            private_key_data = WalletPlugin.safe_b64decode(private_key_pem)
-            # Load the private key from the decoded data
+            # Load the private key from the PEM data
             private_key = serialization.load_pem_private_key(
-                private_key_data, password=None, backend=default_backend()
+                private_key_pem.encode('utf-8'), password=None, backend=default_backend()
             )
+
+            # Serialize the transaction data for signing
+            transaction_data = transaction.serialize_for_signing()
+
             # Sign the transaction
-            signer = private_key.signer(
+            signature = private_key.sign(
+                transaction_data,
                 padding.PSS(
                     mgf=padding.MGF1(hashes.SHA256()),
                     salt_length=padding.PSS.MAX_LENGTH
                 ),
                 hashes.SHA256()
             )
-            signer.update(transaction.to_bytes())
-            signature = signer.finalize()
-            return base64.b64encode(signature).decode('utf-8')
-        except Exception as e:
-            main_logger.error(f"Exception occurred during transaction process: {e}")
-            raise
 
+            # Update the transaction with the signature
+            transaction.signature = base64.b64encode(signature).decode('utf-8')
+
+            return transaction
+        except Exception as e:
+            main_logger.error(f"Exception occurred during transaction signing: {e}")
+            raise
 
 
     def verify_transaction(self, public_key, transaction, signature):
