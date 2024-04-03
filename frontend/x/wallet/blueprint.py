@@ -29,15 +29,15 @@ def dashboard():
     if not username:
         return redirect(url_for('user.login'))
 
-       try:
-           # Fetch wallet data for the user
-           wallet_data = wallet_plugin.fetch_wallet_data(username)
-           main_logger.info("Fetched wallet data for user %s: %s", username, wallet_data)
-           return render_template('dashboard.html', wallet=wallet_data)
-       except Exception as e:
-           # Log and render error message
-           main_logger.error("Error fetching wallet data for user %s: %s", username, str(e))
-           return render_template('error.html', message="An error occurred while fetching wallet data.")
+    try:
+        # Fetch wallet data for the user
+        wallet_data = wallet_plugin.fetch_wallet_data(username)
+        main_logger.info("Fetched wallet data for user %s: %s", username, wallet_data)
+        return render_template('dashboard.html', wallet=wallet_data)
+    except Exception as e:
+        # Log and render error message
+        main_logger.error("Error fetching wallet data for user %s: %s", username, str(e))
+        return render_template('error.html', message="An error occurred while fetching wallet data.")
 
    @wallet_blueprint.route('/send', methods=['GET', 'POST'])
    def send():
