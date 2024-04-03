@@ -30,9 +30,10 @@ def register():
             session['registration_in_progress'] = True
 
             try:
+                registration_result = register_user(username, email, password)
                 registration_success = register_user(username, email, password)
 
-                if registration_success:
+                if registration_result.get("success"):
                     wallet_plugin = WalletPlugin()
                     wallet_details, private_key_pem = wallet_plugin.create_wallet(username)
                     main_logger.info(f"Wallet created for user: {username}")
@@ -41,6 +42,8 @@ def register():
                     main_logger.info(f"Wallet associated with user: {username}")
                     session['private_key'] = private_key_pem
                     flash("Registration successful. Please note your private key.", 'success')
+                elif registration_result.get("user_exists"):
+                    flash("User already exists.", 'error')
                 else:
                     flash("Registration failed.", 'error')
             except Exception as e:
