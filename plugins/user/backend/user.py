@@ -66,6 +66,14 @@ def register_user(username, email, password):
             logger.error(f"User with given username or email already exists: {username}")
             return {"error": "User already exists."}
 
+        # Check if a user with the same username or email already exists
+        existing_user = UserModel.query.filter(
+            (UserModel.username == username) | (UserModel.email == email)
+        ).first()
+        if existing_user:
+            logger.error(f"User with given username or email already exists: {username}")
+            return {"error": "User already exists."}
+
         user = UserModel(username=username, email=email)
         user.password = password  # This uses the @password.setter to hash the password
 
