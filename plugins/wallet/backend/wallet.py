@@ -175,22 +175,31 @@ class WalletPlugin(WalletInterface):
         Returns:
             The signature as bytes.
         """
-        # Convert the PEM-encoded private key string back into a private key object
-        private_key = serialization.load_pem_private_key(
-            private_key_pem.encode(),
-            password=None,  # Update accordingly if your private key is password-protected
-        )
+        try:
+            # Convert the PEM-encoded private key string back into a private key object
+            private_key = serialization.load_pem_private_key(
+                private_key_pem.encode(),
+                password=None,  # Update accordingly if your private key is password-protected
+                backend=default_backend()
+            )
+        except ValueError as e:
+            main_logger.error(f"Error deserializing the private key: {e}")
+            raise
 
-        # Sign the transaction data
-        signature = private_key.sign(
-            transaction.to_bytes(),  # Ensure you have a method to convert transaction to bytes
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH,
-            ),
-            hashes.SHA256(),
-        )
-        return signature
+        try:
+            # Sign the transaction data
+            signature = private_key.sign(
+                transaction.to_bytes(),  # Ensure you have a method to convert transaction to bytes
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH,
+                ),
+                hashes.SHA256(),
+            )
+            return signature
+        except Exception as e:
+            main_logger.error(f"Error signing the transaction: {e}")
+            raise
 
     def verify_transaction(self, public_key, transaction, signature):
         """
