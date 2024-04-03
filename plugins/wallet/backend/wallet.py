@@ -82,7 +82,6 @@ class WalletPlugin(WalletInterface):
         transaction_data = transaction.to_dict()  # Assuming Transaction has a to_dict method
         transaction_data['signature'] = signature
         main_logger.info(f"Broadcasting transaction {transaction.transaction_id} to the network.")
-        )
         # Sign the transaction with the sender's private key (retrieved securely)
         signature = transaction.sign(private_key)
         transaction.signature = signature
