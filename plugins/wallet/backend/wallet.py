@@ -199,7 +199,7 @@ class WalletPlugin(WalletInterface):
     def sign_transaction(self, transaction, private_key_pem):
         try:
             # Decode the base64-encoded private key
-            private_key_data = WalletPlugin.safe_b64decode(private_key_pem)
+            private_key_data = WalletPlugin.safe_b64decode(private_key_pem.strip())
             # Load the private key from PEM format
             private_key = serialization.load_pem_private_key(
                 private_key_data, password=None, backend=default_backend()
