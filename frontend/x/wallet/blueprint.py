@@ -5,7 +5,11 @@ from flask import current_app
 from flask import has_app_context
 from models import UserModel, WalletModel, db
 from models.transaction import TransactionModel
-from plugins.wallet.backend.wallet import WalletPlugin
+
+def get_wallet_plugin():
+    from plugins.wallet.backend.wallet import WalletPlugin
+    return WalletPlugin()
+
 from utilities.logging import create_main_logger
 from dag_core.node import Transaction
 
