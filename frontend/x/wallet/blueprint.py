@@ -5,17 +5,12 @@ from flask import current_app
 from flask import has_app_context
 from models import UserModel, WalletModel, db
 from models.transaction import TransactionModel
-
-def get_wallet_plugin():
-    if not has_app_context():
-        raise RuntimeError("Attempting to get WalletPlugin without an application context.")
-        from plugins.wallet.backend.wallet import WalletPlugin
-        return WalletPlugin()
-
-wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', static_folder='static')
+from plugins.wallet.backend.wallet import WalletPlugin
 from utilities.logging import create_main_logger
 from dag_core.node import Transaction
 
+wallet_plugin = WalletPlugin()
+wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', static_folder='static')
 main_logger = create_main_logger()
 
 @wallet_blueprint.route('/dashboard')
@@ -39,14 +34,7 @@ def dashboard():
     # Create an instance of WalletPlugin within the application context
     if 'NODE_URL' not in current_app.config:
         current_app.config['NODE_URL'] = 'http://127.0.0.1:5001'  # Set a default NODE_URL or ensure it is configured
-    wallet_plugin = get_wallet_plugin()
 
-    try:
-        wallet_plugin = get_wallet_plugin()
-    except RuntimeError as e:
-        main_logger.error(f"Failed to get WalletPlugin: {e}")
-        flash("An error occurred while accessing the wallet service.", 'error')
-        return render_template('error.html', message="Wallet service error.")
 
     # Redirect to login if user is not logged in
     if not username:
@@ -54,7 +42,7 @@ def dashboard():
 
     try:
         # Fetch wallet data for the user
-        wallet_data = wallet_plugin.fetch_wallet_data(username) if wallet_plugin else None
+        wallet_data = wallet_plugin.fetch_wallet_data(username)
         main_logger.info("Fetched wallet data for user %s: %s", username, wallet_data)
         return render_template('dashboard.html', wallet=wallet_data)
     except Exception as e:
