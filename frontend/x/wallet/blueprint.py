@@ -2,11 +2,14 @@ import uuid
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from flask import make_response
 from models.transaction import TransactionModel
+from utilities.logging import create_main_logger
 
 from utilities.logging import create_main_logger
 from dag_core.node import Transaction
 
 wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', static_folder='static')
+main_logger = create_main_logger()
+
 def get_wallet_plugin():
     with current_app.app_context():
         return WalletPlugin()
