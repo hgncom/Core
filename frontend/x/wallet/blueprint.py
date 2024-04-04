@@ -14,12 +14,6 @@ def get_wallet_plugin():
 
 
 @wallet_blueprint.route('/dashboard')
-def dashboard():
-    def get_wallet_plugin():
-        with current_app.app_context():
-            from plugins.wallet.backend.wallet import WalletPlugin
-            return WalletPlugin()
-
 @wallet_blueprint.route('/dashboard')
 def dashboard():
     # Retrieve the username from the session
