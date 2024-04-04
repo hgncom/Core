@@ -3,7 +3,6 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from flask import make_response
 from flask import current_app
 from flask import has_app_context
-from models import UserModel, WalletModel, db
 from models.transaction import TransactionModel
 
 def get_wallet_plugin():
@@ -15,7 +14,6 @@ from dag_core.node import Transaction
 
 wallet_plugin = WalletPlugin()
 wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', static_folder='static')
-main_logger = create_main_logger()
 
 @wallet_blueprint.route('/dashboard')
 def dashboard():
