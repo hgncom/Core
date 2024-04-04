@@ -9,10 +9,9 @@ from dag_core.node import Transaction
 wallet_blueprint = Blueprint('wallet', __name__, template_folder='templates', static_folder='static')
 def get_wallet_plugin():
     with current_app.app_context():
-        from plugins.wallet.backend.wallet import WalletPlugin
         return WalletPlugin()
 
-wallet_plugin = get_wallet_plugin()
+
 
 @wallet_blueprint.route('/dashboard')
 def dashboard():
