@@ -1,3 +1,6 @@
+import sys
+sys.path.append('..')  # Adds the parent directory to Python's search path
+
 from flask import Flask, request, jsonify
 import requests
 import time
@@ -71,23 +74,25 @@ class PeerNetwork:
             except requests.exceptions.RequestException as e:
                 self.logger.error(f"Network error when propagating to {peer}: {e}")
 
-      def heartbeat(self):
-         """
-         Periodically checks peer availability, removing unresponsive ones.
-         """
-         while True:
-             with self.lock:
-                 for peer in list(self.peers):
-                     try:
-                         response = requests.get(f"{peer}/ping")
-                         if response.status_code != 200:
-                             self.peers.remove(peer)
-                             main_logger.info(f"Unresponsive peer removed: {peer}")
-                     except requests.exceptions.RequestException:
-                         self.peers.remove(peer)
-                         main_logger.error(f"Network error on ping: {peer}")
-             time.sleep(30)
+    def heartbeat(self):
+        """
+        Periodically checks peer availability, removing unresponsive ones.
+        """
+        while True:
+            with self.lock:
+                for peer in list(self.peers):
+                    try:
+                        response = requests.get(f"{peer}/ping")
+                        if response.status_code != 200:
+                            self.peers.remove(peer)
+                            main_logger.info(f"Unresponsive peer removed: {peer}")
+                    except requests.exceptions.RequestException:
+                        self.peers.remove(peer)
+                        main_logger.error(f"Network error on ping: {peer}")
+            time.sleep(30)
 
 if __name__ == '__main__':
     # Set Flask to run in production mode.
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    # Check if a port number is provided as a command line argument and use it, otherwise default to 5000.
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 5000
+    app.run(debug=False, host='0.0.0.0', port=port)

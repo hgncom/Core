@@ -14,5 +14,5 @@ class WalletModel(db.Model):
 
     def __repr__(self):
         return f'<Wallet {self.wallet_address}>'
-    amount = db.Column(db.Float, default=0.0, nullable=False)
+    #amount = db.Column(db.Float, default=0.0, nullable=False)
 

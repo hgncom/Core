@@ -17,6 +17,7 @@ class DAGNode:
 
 class Transaction:
     def __init__(self, sender, receiver, amount, signature=None, sender_public_key=None, transaction_id=None, dependencies=None):
+        self.id = id or str(uuid.uuid4())
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
@@ -24,6 +25,15 @@ class Transaction:
         self.sender_public_key = sender_public_key
         self.transaction_id = transaction_id or self.generate_transaction_id()
         self.dependencies = dependencies or []
+
+    def to_dict(self):
+        return {
+            'sender': self.sender,
+            'receiver': self.receiver,
+            'amount': self.amount,
+            'signature': self.signature,
+            # Add any other relevant fields
+        }
 
     def generate_transaction_id(self):
         return str(uuid.uuid4())

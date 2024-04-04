@@ -25,7 +25,6 @@ class WalletPlugin(WalletInterface):
     def __init__(self):
         # Retrieve the Fernet key from the app's configuration
         self.fernet_key = current_app.config['FERNET_KEY']
-        self.fernet_key = current_app.config['FERNET_KEY']
         # Initialize the Ledger with the necessary configuration
         self.network_communication = NetworkCommunication(node_url=current_app.config['NODE_URL'])  # Use the node URL from the app's configuration
         self.ledger = Ledger(fernet_key=self.fernet_key, network_communication=self.network_communication)
@@ -122,20 +121,30 @@ class WalletPlugin(WalletInterface):
         """
         main_logger.info(f"Attempting to fetch wallet data for username: {username}")
         try:
-            wallet = WalletModel.query.join(UserModel).filter(UserModel.username == username).first()
+            # Attempt to fetch the user by username to ensure they exist
+            user = UserModel.query.filter_by(username=username).first()
+            if user:
+                main_logger.debug(f"User found for username: {username} with user ID: {user.id}")
+            else:
+                main_logger.warning(f"User not found for username: {username}")
+                return {"error": "User not found."}
+
+            # Attempt to fetch the wallet using the user ID
+            wallet = WalletModel.query.filter_by(user_id=user.id).first()
             if wallet:
-                main_logger.info(f"Wallet data found for user: {username}")
+                main_logger.info(f"Wallet data found for user: {username} with wallet address: {wallet.wallet_address}")
                 return {
                     "address": wallet.wallet_address,
                     "public_key": wallet.public_key,
                     "amount": wallet.amount
                 }
             else:
-                main_logger.warning(f"Wallet not found for user: {username}")
+                main_logger.warning(f"Wallet not found for user ID: {user.id}")
                 return {"error": "Wallet not found."}
         except Exception as e:
-            main_logger.error(f"Error fetching wallet data for username: {username}: {e}")
+            main_logger.error(f"Error fetching wallet data for username: {username}: {e}", exc_info=True)
             return None
+
 
     def create_wallet(self, username):
         user = UserModel.query.filter_by(username=username).first()

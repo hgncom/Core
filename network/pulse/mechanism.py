@@ -56,6 +56,47 @@ class PulseConsensusMechanism:
         except Exception as e:
             logger.error(f"Error processing transaction: {e}")
 
+    def confirm_transaction(self, transaction):
+        """
+        Attempt to confirm a transaction based on network-wide consensus.
+        """
+        transaction_id = transaction['id']
+        logger.info(f"Attempting to confirm transaction {transaction_id}...")
+
+        try:
+            # Determine the sample size of peers to request validation from
+            sample_peers = self.determine_sample_size()
+            logger.info(f"Requesting validation from {sample_peers} peers...")
+
+            # Request validation from a sample of peers
+            validations_received = 0
+            peers = list(self.network_communication.peers)
+            logger.debug(f"Available peers: {peers}")
+
+            for peer in random.sample(peers, sample_peers):
+                logger.debug(f"Requesting validation from peer: {peer}")
+                if self.request_peer_validation(peer, transaction):
+                    validations_received += 1
+                    logger.debug(f"Validation received from peer: {peer}")
+                else:
+                    logger.debug(f"Validation not received from peer: {peer}")
+
+            # Check if the required consensus threshold is met
+            consensus_threshold = 0.6
+            consensus_ratio = validations_received / sample_peers
+            logger.info(f"Validations received: {validations_received} out of {sample_peers} ({consensus_ratio:.2%})")
+
+            if consensus_ratio >= consensus_threshold:
+                logger.info(f"Transaction {transaction_id} confirmed by network consensus.")
+                return True
+            else:
+                logger.warning(f"Transaction {transaction_id} failed to achieve consensus.")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error occurred while confirming transaction {transaction_id}: {str(e)}")
+            return False
+
     def validate_and_reach_consensus(self, transaction):
         # Placeholder for comprehensive validation and consensus reaching process
         return True
@@ -93,9 +134,14 @@ class PulseConsensusMechanism:
             self.send_transaction(peer, encrypted_data)
 
     def gossip_transaction(self, transaction):
-        encrypted_data = self.fernet.encrypt(json.dumps(transaction).encode())
-        for peer in random.sample(list(self.network_communication.peers), min(len(self.network_communication.peers), 5)):
-            self.send_transaction(peer, encrypted_data)
+        transaction_data = {
+            "id": transaction.id,
+            "sender": transaction.sender,
+            "receiver": transaction.receiver,
+            "amount": transaction.amount,
+            # Include other necessary fields
+        }
+        encrypted_data = self.fernet.encrypt(json.dumps(transaction_data).encode())
 
     def send_transaction(self, peer, encrypted_data):
         try:

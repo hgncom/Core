@@ -25,7 +25,7 @@ class Ledger:
         self.pending_transactions = set()
         self.balance_sheet = {}
         self.approval_graph = defaultdict(set)
-        self.confirmation_threshold = 5
+        self.confirmation_threshold = 0
 
         # Initialize Fernet key from the Flask app's configuration
         fernet_key = 'aqg0ahE_7tGYt8KauLRLNyeEhSAOm0nehgIlcQ-zbkg='
@@ -41,24 +41,28 @@ class Ledger:
         """
         def background_task():
             while True:
+                self.logger.info("Starting background task to check for pending transactions.")
                 self.check_pending_transactions()
+                self.logger.info("Background task completed, sleeping for 60 seconds.")
                 sleep(60)  # Wait for 60 seconds before checking again
 
         # Run the background task in a separate thread
+        self.logger.info("Starting background thread for transaction confirmation.")
         threading.Thread(target=background_task, daemon=True).start()
 
     def check_pending_transactions(self):
         """
         Checks the status of pending transactions and updates the database accordingly.
         """
+        self.logger.info("Checking for pending transactions.")
         for transaction_id in list(self.pending_transactions):
+            self.logger.info(f"Checking transaction {transaction_id} for confirmation.")
             if self.is_transaction_confirmed(transaction_id):
+                self.logger.info(f"Transaction {transaction_id} is confirmed, proceeding with confirmation.")
                 self.confirm_transaction(transaction_id)
                 self.logger.info(f"Transaction {transaction_id} confirmed and database updated.")
-
-    # Rest of the Ledger class remains unchanged...
-        # self.shard_manager initialization will be handled elsewhere to avoid circular import
-                # self.shard_manager initialization will be handled elsewhere to avoid circular import
+            else:
+                self.logger.info(f"Transaction {transaction_id} is not yet confirmed.")
 
     def get_transactions_for_gossip(self):
         """
@@ -80,12 +84,16 @@ class Ledger:
 
     def is_transaction_confirmed(self, transaction_id):
         if transaction_id in self.confirmed_transactions:
+            self.logger.info(f"Transaction {transaction_id} is already confirmed.")
             return True
         subsequent_transactions = self.get_subsequent_transactions(transaction_id)
         if len(subsequent_transactions) >= self.confirmation_threshold:
+            self.logger.info(f"Transaction {transaction_id} has met the confirmation threshold ({self.confirmation_threshold}).")
             self.confirmed_transactions.add(transaction_id)
             self.pending_transactions.remove(transaction_id)
             return True
+        else:
+            self.logger.info(f"Transaction {transaction_id} has not yet met the confirmation threshold ({len(subsequent_transactions)}/{self.confirmation_threshold}).")
         return False
 
     def get_subsequent_transactions(self, transaction_id):
@@ -160,14 +168,30 @@ class Ledger:
     def confirm_transaction(self, transaction_id):
         self.logger.info(f"Attempting to confirm transaction {transaction_id}.")
         transaction = self.transactions.get(transaction_id)
+        # Log transaction details
+        self.logger.debug(f"Transaction details: ID={transaction_id}, Sender={transaction.sender}, Receiver={transaction.receiver}, Amount={transaction.amount}")
+
         if not transaction:
-            self.logger.warning(f"Transaction {transaction_id} not found in the ledger.")
-            self.logger.warning(f"Transaction {transaction_id} not found.")
+            self.logger.info(f"Transaction {transaction_id} not found in the ledger.")
+            self.logger.info(f"Transaction {transaction_id} not found.")
             return False
         if self.pulse_consensus.confirm_transaction(transaction):
             sender_wallet = WalletModel.query.filter_by(wallet_address=transaction.sender).first()
             recipient_wallet = WalletModel.query.filter_by(wallet_address=transaction.receiver).first()
+
+            # Log wallet lookup results
+            if sender_wallet:
+                self.logger.info(f"Sender wallet found: Address={sender_wallet.wallet_address}, Current amount={sender_wallet.amount}")
+            else:
+                self.logger.info(f"Sender wallet not found for address: {transaction.sender}")
+
+            if recipient_wallet:
+                self.logger.info(f"Recipient wallet found: Address={recipient_wallet.wallet_address}, Current amount={recipient_wallet.amount}")
+            else:
+                self.logger.info(f"Recipient wallet not found for address: {transaction.receiver}")
+
             if sender_wallet and recipient_wallet:
+                self.logger.info(f"Updating wallets for transaction {transaction_id}.")
                 sender_wallet.amount -= transaction.amount
                 recipient_wallet.amount += transaction.amount
                 db.session.commit()
@@ -175,14 +199,12 @@ class Ledger:
                 self.confirmed_transactions.add(transaction_id)
                 if transaction_id in self.pending_transactions:
                     self.pending_transactions.remove(transaction_id)
+                return True
             else:
-                self.logger.error(f"Failed to update wallets for transaction {transaction_id}.")
-            self.logger.info(f"Transaction {transaction_id} confirmed.")
-            self.logger.info(f"Transaction {transaction_id} confirmed and wallets updated.")
-            return True
+                self.logger.info(f"Failed to update wallets for transaction {transaction_id}.")
+                return False
         else:
-            self.logger.warning(f"Transaction {transaction_id} could not be confirmed by consensus.")
-            self.logger.warning(f"Transaction {transaction_id} could not be confirmed.")
+            self.logger.info(f"Transaction {transaction_id} could not be confirmed by consensus.")
             return False
 
     def verify_transaction(self, transaction):
